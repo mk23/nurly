@@ -20,7 +20,8 @@ static pthread_mutex_t nurly_mutex  = PTHREAD_MUTEX_INITIALIZER;
 
 
 /* declare nurly functions */
-static int    nurly_process_events(int, void*);
+static int    nurly_process_data(int, void*);
+static int    nurly_service_check(int, void*);
 
        void*  nurly_worker_start(void*);
 static void   nurly_worker_purge(void*);
@@ -37,6 +38,10 @@ int nebmodule_init(int flags, char* args, nebmodule* handle) {
         nurly_log("need BROKER_PROGRAM_STATE (%i or -1) in event_broker_options enabled to work", BROKER_PROGRAM_STATE);
         return NEB_ERROR;
     }
+    if (!(event_broker_options & BROKER_SERVICE_CHECKS)) {
+        nurly_log("need BROKER_SERVICE_CHECKS (%i or -1) in event_broker_options enabled to work", BROKER_SERVICE_CHECKS);
+        return NEB_ERROR;
+    }
 
     /* module info */
     neb_set_module_info(nurly_module, NEBMODULE_MODINFO_TITLE,     "Nurly");
@@ -47,7 +52,7 @@ int nebmodule_init(int flags, char* args, nebmodule* handle) {
     neb_set_module_info(nurly_module, NEBMODULE_MODINFO_DESC,      "distribute host/service checks via libcurl");
 
     /* register initializer callback */
-    neb_register_callback(NEBCALLBACK_PROCESS_DATA, nurly_module, 0, nurly_process_events);
+    neb_register_callback(NEBCALLBACK_PROCESS_DATA, nurly_module, 0, nurly_process_data);
 
     return NEB_OK;
 }
@@ -67,21 +72,49 @@ int nebmodule_deinit(int flags, int reason) {
     return NEB_OK;
 }
 
-static int nurly_process_events(int event_type, void* data) {
-    struct nebstruct_process_struct* event_data;
+static int nurly_process_data(int event_type, void* data) {
+    nebstruct_process_data* process_data;
 
-    nurly_log("nurly_process_events(%i, data)", event_type);
+    nurly_log("nurly_process_data(%i, data)", event_type);
 
-    event_data = (struct nebstruct_process_struct*)data;
-    if (event_data->type == NEBTYPE_PROCESS_EVENTLOOPSTART) {
+    process_data = (nebstruct_process_data*)data;
+    if (process_data == NULL) {
+        nurly_log("error: received invalid process data");
+        return NEB_ERROR;
+    }
+
+    if (process_data->type == NEBTYPE_PROCESS_EVENTLOOPSTART) {
         curl_global_init(CURL_GLOBAL_DEFAULT);
 
         for (int i = 0; i < NURLY_THREADS; i++) {
-            pthread_create(&nurly_thread[i], NULL, nurly_worker_start, (void *)NULL);
+            pthread_create(&nurly_thread[i], NULL, nurly_worker_start, (void*)NULL);
         }
 
-        /* nurly_register_callbacks(); */
+        neb_register_callback(NEBCALLBACK_SERVICE_CHECK_DATA, nurly_module, 0, nurly_service_check);
     }
+
+    nurly_log("initialization complete, version: %s", NURLY_VERSION);
+
+    return NEB_OK;
+}
+
+static int nurly_service_check(int event_type, void* data) {
+    nebstruct_service_check_data* service_data;
+
+    nurly_log("nurly_service_check(%i, data)", event_type);
+
+    service_data = (nebstruct_service_check_data*)data;
+    if (service_data == NULL) {
+        nurly_log("error: received invalid service data");
+        return NEB_ERROR;
+    }
+
+    /* ignore non-initiate service checks */
+    if (service_data->type != NEBTYPE_SERVICECHECK_INITIATE) {
+        return NEB_OK;
+    }
+
+    nurly_log("processing service check command: %s", service_data->command_line);
 
     return NEB_OK;
 }
