@@ -14,9 +14,9 @@ NEB_API_VERSION(CURRENT_NEB_API_VERSION)
 extern int             event_broker_options;
 
 /* global variables for nurly */
-static pthread_mutex_t nurly_mutex  = PTHREAD_MUTEX_INITIALIZER;
-       void*           nurly_module = NULL;
-       pthread_t       nurly_thread[NURLY_THREADS];
+nurly_queue_t   nurly_work_q = NURLY_QUEUE_INITIALIZER;
+void*           nurly_module = NULL;
+pthread_t       nurly_thread[NURLY_THREADS];
 
 
 /* declare nurly functions */
@@ -25,8 +25,6 @@ static int    nurly_service_check(int, void*);
 
        void*  nurly_worker_start(void*);
 static void   nurly_worker_purge(void*);
-
-static void   nurly_log(const char*, ...);
 
 
 int nebmodule_init(int flags, char* args, nebmodule* handle) {
@@ -62,7 +60,7 @@ int nebmodule_deinit(int flags, int reason) {
 
     neb_deregister_callback(NEBCALLBACK_PROCESS_DATA, nurly_module);
 
-    for (int i = 0; i < NURLY_THREADS; i++) {
+    for (long i = 0; i < NURLY_THREADS; i++) {
         pthread_cancel(nurly_thread[i]);
         pthread_join(nurly_thread[i], NULL);
     }
@@ -86,8 +84,8 @@ static int nurly_process_data(int event_type, void* data) {
     if (process_data->type == NEBTYPE_PROCESS_EVENTLOOPSTART) {
         curl_global_init(CURL_GLOBAL_DEFAULT);
 
-        for (int i = 0; i < NURLY_THREADS; i++) {
-            pthread_create(&nurly_thread[i], NULL, nurly_worker_start, (void*)NULL);
+        for (long i = 0; i < NURLY_THREADS; i++) {
+            pthread_create(&nurly_thread[i], NULL, nurly_worker_start, (void*)i);
         }
 
         neb_register_callback(NEBCALLBACK_SERVICE_CHECK_DATA, nurly_module, 0, nurly_service_check);
@@ -122,11 +120,12 @@ static int nurly_service_check(int event_type, void* data) {
 void* nurly_worker_start(void* data) {
     nurly_worker_t worker_data;
 
-    nurly_log("nurly_worker_start()");
+    nurly_log("nurly_worker_start(%02i)", (long)data);
 
     pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
     pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
 
+    worker_data.id   = (long)data;
     worker_data.curl = curl_easy_init();
 
     pthread_cleanup_push(nurly_worker_purge, (void*)&worker_data);
@@ -146,7 +145,7 @@ static void nurly_worker_purge(void* data) {
     curl_easy_cleanup(worker_data->curl);
 }
 
-static void nurly_log(const char* text, ...) {
+void nurly_log(const char* text, ...) {
     va_list args;
     char line[1024] = "nurly: ";
 

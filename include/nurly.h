@@ -6,6 +6,7 @@
 
 #include <curl/curl.h>
 
+#include "queue.h"
 #include "nagios/nagios.h"
 #include "nagios/broker.h"
 #include "nagios/neberrors.h"
@@ -17,9 +18,8 @@
 #define NURLY_THREADS 20
 
 typedef struct nurly_worker {
+    int   id;
     CURL* curl;
 } nurly_worker_t;
 
-int nebmodule_init(int, char*, nebmodule*);
-
-int nebmodule_deinit(int, int);
+void nurly_log(const char*, ...);
