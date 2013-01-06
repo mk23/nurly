@@ -1,7 +1,7 @@
 /*****************************************************************************
  * Compile with the following command:
  *
- *     gcc -I../include -std=c99 -shared -fPIC -o nurly.o nurly.c queue.c -lcurl -lrt -pthread
+ *     gcc -I../include -std=c99 -shared -fPIC -o nurly.o nurly.c queue.c callbacks.c -lcurl -lrt -pthread
  *
  *****************************************************************************/
 
@@ -11,21 +11,17 @@
 NEB_API_VERSION(CURRENT_NEB_API_VERSION)
 
 /* global variables from nagios */
-extern int             event_broker_options;
+extern int      event_broker_options;
 
 /* global variables for nurly */
 nurly_queue_t   nurly_work_q = NURLY_QUEUE_INITIALIZER;
-void*           nurly_module = NULL;
+nebmodule*      nurly_module = NULL;
 pthread_t       nurly_thread[NURLY_THREADS];
 
 
 /* declare nurly functions */
-static int    nurly_process_data(int, void*);
-static int    nurly_service_check(int, void*);
-
-       void*  nurly_worker_start(void*);
-static void   nurly_worker_purge(void*);
-
+void*  nurly_worker_start(void*);
+void   nurly_worker_purge(void*);
 
 int nebmodule_init(int flags, char* args, nebmodule* handle) {
     nurly_module = handle;
@@ -54,7 +50,7 @@ int nebmodule_init(int flags, char* args, nebmodule* handle) {
 }
 
 int nebmodule_deinit(int flags, int reason) {
-    neb_deregister_callback(NEBCALLBACK_PROCESS_DATA, nurly_module);
+    neb_deregister_callback(NEBCALLBACK_PROCESS_DATA, (void*)nurly_module);
 
     //for (long i = 0; i < NURLY_THREADS; i++) {
     //    pthread_cancel(nurly_thread[i]);
@@ -66,62 +62,8 @@ int nebmodule_deinit(int flags, int reason) {
     return NEB_OK;
 }
 
-static int nurly_process_data(int event_type, void* data) {
-    nebstruct_process_data* process_data;
-
-    process_data = (nebstruct_process_data*)data;
-    if (process_data == NULL) {
-        nurly_log("error: received invalid process data");
-        return NEB_ERROR;
-    }
-
-    if (process_data->type == NEBTYPE_PROCESS_EVENTLOOPSTART) {
-        curl_global_init(CURL_GLOBAL_DEFAULT);
-
-        for (long i = 0; i < NURLY_THREADS; i++) {
-            pthread_create(&nurly_thread[i], NULL, nurly_worker_start, (void*)i);
-        }
-
-        neb_register_callback(NEBCALLBACK_SERVICE_CHECK_DATA, nurly_module, 0, nurly_service_check);
-
-        nurly_log("initialization complete, version: %s", NURLY_VERSION);
-    }
-
-    return NEB_OK;
-}
-
-static int nurly_service_check(int event_type, void* data) {
-    char*                         command_line;
-    nebstruct_service_check_data* service_data;
-
-    service_data = (nebstruct_service_check_data*)data;
-    if (service_data == NULL) {
-        nurly_log("error: received invalid service data");
-        return NEB_ERROR;
-    }
-
-    /* ignore non-initiate service checks */
-    if (service_data->type != NEBTYPE_SERVICECHECK_INITIATE) {
-        return NEB_OK;
-    }
-
-    command_line = malloc(sizeof(char) * (strlen(service_data->command_line) + 1));
-    if (!command_line) {
-        nurly_log("unable to allocate memory for command line");
-        return NEB_ERROR;
-    }
-
-    strcpy(command_line, service_data->command_line);
-
-    nurly_log("processing service check command: %s", command_line);
-    nurly_queue_put(&nurly_work_q, (void*)command_line);
-
-    return NEBERROR_CALLBACKOVERRIDE;
-}
-
 void* nurly_worker_start(void* data) {
-    char*          command_line;
-    char*          curl_escaped;
+//    char*          curl_escaped;
     nurly_worker_t worker_data;
 
     pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
@@ -132,14 +74,14 @@ void* nurly_worker_start(void* data) {
 
     pthread_cleanup_push(nurly_worker_purge, (void*)&worker_data);
     while (1) {
-        command_line = (char*)nurly_queue_get(&nurly_work_q);
-        if (command_line) {
-            curl_escaped = curl_easy_escape(worker_data.curl, command_line, 0);
-            nurly_log("got work item in worker %02i: %s", worker_data.id, curl_escaped);
-            curl_free(curl_escaped);
-
-            free(command_line);
-        }
+//        command_line = (char*)nurly_queue_get(&nurly_work_q);
+//        if (command_line) {
+//            curl_escaped = curl_easy_escape(worker_data.curl, command_line, 0);
+//            nurly_log("got work item in worker %02i: %s", worker_data.id, curl_escaped);
+//            curl_free(curl_escaped);
+//
+//            free(command_line);
+//        }
         sleep(1);
     }
     pthread_cleanup_pop(0);
@@ -147,7 +89,7 @@ void* nurly_worker_start(void* data) {
     return NULL;
 }
 
-static void nurly_worker_purge(void* data) {
+void nurly_worker_purge(void* data) {
     nurly_worker_t* worker_data = (nurly_worker_t*)data;
 
     curl_easy_cleanup(worker_data->curl);

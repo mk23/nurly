@@ -27,4 +27,14 @@ typedef struct nurly_worker {
 
 typedef struct timespec timespec_t;
 
+/* utility */
 void nurly_log(const char*, ...);
+
+/* callbacks */
+int nurly_process_data(int, void*);
+int nurly_host_check(int, void*);
+int nurly_service_check(int, void*);
+
+/* threads */
+void* nurly_worker_start(void*);
+void  nurly_worker_purge(void*);
