@@ -1,8 +1,11 @@
+#include <pthread.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
-#include <pthread.h>
+#include <time.h>
 
 #include <curl/curl.h>
 
@@ -21,5 +24,7 @@ typedef struct nurly_worker {
     int   id;
     CURL* curl;
 } nurly_worker_t;
+
+typedef struct timespec timespec_t;
 
 void nurly_log(const char*, ...);

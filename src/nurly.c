@@ -1,7 +1,7 @@
 /*****************************************************************************
  * Compile with the following command:
  *
- *     gcc -I../include -std=c99 -shared -fPIC -o nurly.o nurly.c -lcurl
+ *     gcc -I../include -std=c99 -shared -fPIC -o nurly.o nurly.c queue.c -lcurl -lrt -pthread
  *
  *****************************************************************************/
 
@@ -28,8 +28,6 @@ static void   nurly_worker_purge(void*);
 
 
 int nebmodule_init(int flags, char* args, nebmodule* handle) {
-    nurly_log("nebmodule_init(%i, args, handle)", flags);
-
     nurly_module = handle;
 
     if (!(event_broker_options & BROKER_PROGRAM_STATE)) {
@@ -56,14 +54,12 @@ int nebmodule_init(int flags, char* args, nebmodule* handle) {
 }
 
 int nebmodule_deinit(int flags, int reason) {
-    nurly_log("nebmodule_deinit(%i, %i)", flags, reason);
-
     neb_deregister_callback(NEBCALLBACK_PROCESS_DATA, nurly_module);
 
-    for (long i = 0; i < NURLY_THREADS; i++) {
-        pthread_cancel(nurly_thread[i]);
-        pthread_join(nurly_thread[i], NULL);
-    }
+    //for (long i = 0; i < NURLY_THREADS; i++) {
+    //    pthread_cancel(nurly_thread[i]);
+    //    pthread_join(nurly_thread[i], NULL);
+    //}
 
     curl_global_cleanup();
 
@@ -72,8 +68,6 @@ int nebmodule_deinit(int flags, int reason) {
 
 static int nurly_process_data(int event_type, void* data) {
     nebstruct_process_data* process_data;
-
-    nurly_log("nurly_process_data(%i, data)", event_type);
 
     process_data = (nebstruct_process_data*)data;
     if (process_data == NULL) {
@@ -89,17 +83,16 @@ static int nurly_process_data(int event_type, void* data) {
         }
 
         neb_register_callback(NEBCALLBACK_SERVICE_CHECK_DATA, nurly_module, 0, nurly_service_check);
-    }
 
-    nurly_log("initialization complete, version: %s", NURLY_VERSION);
+        nurly_log("initialization complete, version: %s", NURLY_VERSION);
+    }
 
     return NEB_OK;
 }
 
 static int nurly_service_check(int event_type, void* data) {
+    char*                         command_line;
     nebstruct_service_check_data* service_data;
-
-    nurly_log("nurly_service_check(%i, data)", event_type);
 
     service_data = (nebstruct_service_check_data*)data;
     if (service_data == NULL) {
@@ -112,24 +105,41 @@ static int nurly_service_check(int event_type, void* data) {
         return NEB_OK;
     }
 
-    nurly_log("processing service check command: %s", service_data->command_line);
+    command_line = malloc(sizeof(char) * (strlen(service_data->command_line) + 1));
+    if (!command_line) {
+        nurly_log("unable to allocate memory for command line");
+        return NEB_ERROR;
+    }
 
-    return NEB_OK;
+    strcpy(command_line, service_data->command_line);
+
+    nurly_log("processing service check command: %s", command_line);
+    nurly_queue_put(&nurly_work_q, (void*)command_line);
+
+    return NEBERROR_CALLBACKOVERRIDE;
 }
 
 void* nurly_worker_start(void* data) {
+    char*          command_line;
+    char*          curl_escaped;
     nurly_worker_t worker_data;
 
-    nurly_log("nurly_worker_start(%02i)", (long)data);
-
     pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
-    pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
+    pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED, NULL);
 
     worker_data.id   = (long)data;
     worker_data.curl = curl_easy_init();
 
     pthread_cleanup_push(nurly_worker_purge, (void*)&worker_data);
     while (1) {
+        command_line = (char*)nurly_queue_get(&nurly_work_q);
+        if (command_line) {
+            curl_escaped = curl_easy_escape(worker_data.curl, command_line, 0);
+            nurly_log("got work item in worker %02i: %s", worker_data.id, curl_escaped);
+            curl_free(curl_escaped);
+
+            free(command_line);
+        }
         sleep(1);
     }
     pthread_cleanup_pop(0);
@@ -139,8 +149,6 @@ void* nurly_worker_start(void* data) {
 
 static void nurly_worker_purge(void* data) {
     nurly_worker_t* worker_data = (nurly_worker_t*)data;
-
-    nurly_log("nurly_worker_purge()");
 
     curl_easy_cleanup(worker_data->curl);
 }

@@ -3,8 +3,6 @@
 void nurly_queue_put(nurly_queue_t* queue, void* data) {
     nurly_queue_item_t* item;
 
-    nurly_log("nurly_queue_put(queue, data)");
-
     if (queue == NULL || (!(queue->head == NULL && queue->tail == NULL) && (queue->head == NULL || queue->tail == NULL))) {
         nurly_log("queue is not initialized");
         return;
@@ -32,10 +30,8 @@ void nurly_queue_put(nurly_queue_t* queue, void* data) {
 }
 
 void* nurly_queue_get(nurly_queue_t* queue) {
-    nurly_queue_item_t* item;
     void*               data;
-
-    nurly_log("nurly_queue_get(queue, data)");
+    nurly_queue_item_t* item;
 
     if (queue == NULL || (!(queue->head == NULL && queue->tail == NULL) && (queue->head == NULL || queue->tail == NULL))) {
         nurly_log("queue is not initialized");
@@ -60,12 +56,8 @@ void* nurly_queue_get(nurly_queue_t* queue) {
 }
 
 int nurly_queue_len(nurly_queue_t* queue) {
-    int size;
-
-    nurly_log("nurly_queue_len(queue, data)");
-
     pthread_mutex_lock(&(queue->lock));
-    size = queue->size;
+    int size = queue->size;
     pthread_mutex_unlock(&(queue->lock));
 
     return size;
