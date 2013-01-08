@@ -4,13 +4,13 @@ void nurly_queue_put(nurly_queue_t* queue, void* data) {
     nurly_queue_item_t* item;
 
     if (queue == NULL || (!(queue->head == NULL && queue->tail == NULL) && (queue->head == NULL || queue->tail == NULL))) {
-        nurly_log("queue is not initialized");
+        nurly_log("error: queue is not initialized");
         return;
     }
 
     item = (nurly_queue_item_t*)malloc(sizeof(nurly_queue_item_t));
     if (item == NULL) {
-        nurly_log("unable to allocate memory for queue item");
+        nurly_log("error: unable to allocate memory for queue item");
         return;
     }
 
@@ -34,7 +34,7 @@ void* nurly_queue_get(nurly_queue_t* queue) {
     nurly_queue_item_t* item;
 
     if (queue == NULL || (!(queue->head == NULL && queue->tail == NULL) && (queue->head == NULL || queue->tail == NULL))) {
-        nurly_log("queue is not initialized");
+        nurly_log("error: queue is not initialized");
         return NULL;
     }
 
@@ -48,7 +48,7 @@ void* nurly_queue_get(nurly_queue_t* queue) {
     if (queue->head == NULL) {
         queue->tail = NULL;
     }
-    free(item);
+    NURLY_FREE(item);
     queue->size--;
     pthread_mutex_unlock(&(queue->lock));
 

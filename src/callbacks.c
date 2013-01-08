@@ -29,6 +29,7 @@ int nurly_process_data(int event_type, void* data) {
 }
 
 int nurly_service_check(int event_type, void* data) {
+    nurly_service_check_t*        check_data;
     nebstruct_service_check_data* service_data;
 
     service_data = (nebstruct_service_check_data*)data;
@@ -42,7 +43,27 @@ int nurly_service_check(int event_type, void* data) {
         return NEB_OK;
     }
 
-    nurly_queue_put(&nurly_work_q, (void*)&service_data);
+    check_data = (nurly_service_check_t*)malloc(sizeof(nurly_service_check_t));
+    if (check_data == NULL) {
+        nurly_log("error: unable to allocate memory for service check item");
+        return NEB_ERROR;
+    }
+
+//    nurly_log("host_name:           %s", service_data->host_name);
+//    nurly_log("service_description: %s", service_data->service_description);
+//    nurly_log("service_type:        %d", service_data->check_type);
+//    nurly_log("service_options:     %d", CHECK_OPTION_NONE);
+//    nurly_log("scheduled_check:     %d", CHECK_OPTION_NONE);
+//    nurly_log("reschedule_check:    %d", CHECK_OPTION_NONE);
+//    nurly_log("latency:             %f", service_data->latency);
+//    nurly_log("start_time:          %lu.%lu", service_data->start_time.tv_sec, service_data->start_time.tv_usec);
+    check_data->host    = strdup(service_data->host_name);
+    check_data->service = strdup(service_data->service_description);
+    check_data->command = strdup(service_data->command_line);
+    check_data->latency = service_data->latency;
+    check_data->start_time = service_data->start_time;
+
+    nurly_queue_put(&nurly_work_q, (void*)check_data);
 
     return NEBERROR_CALLBACKOVERRIDE;
 }
