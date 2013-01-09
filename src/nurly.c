@@ -122,9 +122,7 @@ void* nurly_worker_start(void* data) {
                     reply_data = escape_newlines(reply_text);
 
                     curl_easy_getinfo(curl_handle, CURLINFO_RESPONSE_CODE, &reply_code);
-                    if ((reply_code = (reply_code - 200) % 220) > 3) {
-                        reply_code = 3;
-                    }
+                    reply_code = (reply_code - 200) > 23 ? 3 : (reply_code - 200) % 20;
 
                     /* get the check finish time */
                     gettimeofday(&finish_time, NULL);
