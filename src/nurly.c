@@ -52,10 +52,10 @@ int nebmodule_init(int flags, char* args, nebmodule* handle) {
 int nebmodule_deinit(int flags, int reason) {
     neb_deregister_callback(NEBCALLBACK_PROCESS_DATA, (void*)nurly_module);
 
-    //for (long i = 0; i < NURLY_THREADS; i++) {
-    //    pthread_cancel(nurly_thread[i]);
-    //    pthread_join(nurly_thread[i], NULL);
-    //}
+    for (long i = 0; i < NURLY_THREADS; i++) {
+        pthread_cancel(nurly_thread[i]);
+        pthread_join(nurly_thread[i], NULL);
+    }
 
     curl_global_cleanup();
 
