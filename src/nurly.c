@@ -1,7 +1,7 @@
 /*****************************************************************************
  * Compile with the following command:
  *
- *     gcc -O0 -ggdb -std=c99 -D_GNU_SOURCE=1 -I../include -shared -fPIC -o nurly.o nurly.c queue.c callbacks.c -lcurl -lrt -pthread
+ *     gcc -O0 -ggdb -std=c99 -D_GNU_SOURCE=1 -I../include -shared -fPIC -o nurly.o nurly.c queue.c callbacks.c workers.c checks.c -lcurl -lrt -pthread
  *
  *****************************************************************************/
 
