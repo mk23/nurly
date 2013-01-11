@@ -21,9 +21,14 @@
 #define NURLY_THREADS 1
 
 #define NURLY_FREE(p) \
-    do { if (p) { free(p); p = NULL; } } while(0)
-#define NURLY_SERVICE_CHECK_FREE(p) \
-    do { if (p) { NURLY_FREE(p->host); NURLY_FREE(p->service); NURLY_FREE(p->command); } NURLY_FREE(p); } while(0)
+    do { if (p) { free(p); p = NULL; } } while (0)
+#define NURLY_FREE_CHECK_RESULT(p) \
+    do { if (p) { free_check_result(p); } NURLY_FREE(p); } while (0)
+#define NURLY_FREE_SERVICE_CHECK(p) \
+    do { if (p) { NURLY_FREE(p->host); NURLY_FREE(p->service); NURLY_FREE(p->command); } NURLY_FREE(p); } while (0)
+
+#define NURLY_CLOSE(f) \
+    do { if (f) { fclose(f) ; f = NULL; } } while (0)
 
 #define NURLY_TIMESTAMP(t) \
     (double)t.tv_sec + (double)t.tv_usec / 1000000

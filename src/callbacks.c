@@ -32,8 +32,7 @@ int nurly_service_check(int event_type, void* data) {
     nurly_service_check_t*        check_data;
     nebstruct_service_check_data* service_data;
 
-    service_data = (nebstruct_service_check_data*)data;
-    if (service_data == NULL) {
+    if ((service_data = (nebstruct_service_check_data*)data) == NULL) {
         nurly_log("error: received invalid service data");
         return NEB_ERROR;
     }
@@ -43,8 +42,7 @@ int nurly_service_check(int event_type, void* data) {
         return NEB_OK;
     }
 
-    check_data = (nurly_service_check_t*)malloc(sizeof(nurly_service_check_t));
-    if (check_data == NULL) {
+    if ((check_data = (nurly_service_check_t*)malloc(sizeof(nurly_service_check_t))) == NULL) {
         nurly_log("error: unable to allocate memory for service check item");
         return NEB_ERROR;
     }
@@ -55,6 +53,7 @@ int nurly_service_check(int event_type, void* data) {
     check_data->latency    = service_data->latency;
     check_data->start_time = service_data->start_time;
 
+    nurly_log("queuing service check '%s' on host '%s'", check_data->service, check_data->host);
     nurly_queue_put(&nurly_work_q, (void*)check_data);
 
     return NEBERROR_CALLBACKOVERRIDE;
