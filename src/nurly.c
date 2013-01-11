@@ -33,7 +33,7 @@ int nebmodule_init(int flags, char* args, nebmodule* handle) {
         return NEB_ERROR;
     }
 
-    nurly_log("starting nurly to %s", nurly_server);
+    nurly_log("starting nurly via %s", nurly_server);
 
     /* module info */
     neb_set_module_info(nurly_module, NEBMODULE_MODINFO_TITLE,     "Nurly");
@@ -44,13 +44,14 @@ int nebmodule_init(int flags, char* args, nebmodule* handle) {
     neb_set_module_info(nurly_module, NEBMODULE_MODINFO_DESC,      "distribute host/service checks via libcurl");
 
     /* register initializer callback */
-    neb_register_callback(NEBCALLBACK_PROCESS_DATA, nurly_module, 0, nurly_process_data);
+    neb_register_callback(NEBCALLBACK_PROCESS_DATA, nurly_module, 0, nurly_callback_process_data);
 
     return NEB_OK;
 }
 
 int nebmodule_deinit(int flags, int reason) {
-    neb_deregister_callback(NEBCALLBACK_PROCESS_DATA, (void*)nurly_module);
+    neb_deregister_callback(NEBCALLBACK_PROCESS_DATA,       (void*)nurly_module);
+    neb_deregister_callback(NEBCALLBACK_SERVICE_CHECK_DATA, (void*)nurly_module);
 
     for (long i = 0; i < NURLY_THREADS; i++) {
         pthread_cancel(nurly_thread[i]);

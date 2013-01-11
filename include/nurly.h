@@ -35,13 +35,6 @@
 #define NURLY_TIMEDIFF(a,b) \
     (NURLY_TIMESTAMP(a) - NURLY_TIMESTAMP(b))
 
-/*
-typedef struct nurly_worker {
-    int   id;
-    CURL* curl;
-} nurly_worker_t;
-*/
-
 typedef struct timeval timeval_t;
 
 typedef struct nurly_service_check {
@@ -56,10 +49,13 @@ typedef struct nurly_service_check {
 void nurly_log(const char*, ...);
 
 /* callbacks */
-int nurly_process_data(int, void*);
-int nurly_host_check(int, void*);
-int nurly_service_check(int, void*);
+int nurly_callback_process_data(int, void*);
+int nurly_callback_service_check(int, void*);
 
 /* threads */
 void* nurly_worker_start(void*);
 void  nurly_worker_purge(void*);
+
+/* checks */
+void nurly_check_service(CURL*, nurly_service_check_t*);
+

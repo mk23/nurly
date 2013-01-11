@@ -4,7 +4,7 @@ extern nurly_queue_t nurly_work_q;
 extern nebmodule*    nurly_module;
 extern pthread_t     nurly_thread[NURLY_THREADS];
 
-int nurly_process_data(int event_type, void* data) {
+int nurly_callback_process_data(int event_type, void* data) {
     nebstruct_process_data* process_data;
 
     process_data = (nebstruct_process_data*)data;
@@ -20,7 +20,7 @@ int nurly_process_data(int event_type, void* data) {
             pthread_create(&nurly_thread[i], NULL, nurly_worker_start, (void*)i);
         }
 
-        neb_register_callback(NEBCALLBACK_SERVICE_CHECK_DATA, nurly_module, 0, nurly_service_check);
+        neb_register_callback(NEBCALLBACK_SERVICE_CHECK_DATA, nurly_module, 0, nurly_callback_service_check);
 
         nurly_log("initialization complete, version: %s", NURLY_VERSION);
     }
@@ -28,7 +28,7 @@ int nurly_process_data(int event_type, void* data) {
     return NEB_OK;
 }
 
-int nurly_service_check(int event_type, void* data) {
+int nurly_callback_service_check(int event_type, void* data) {
     nurly_service_check_t*        check_data;
     nebstruct_service_check_data* service_data;
 
