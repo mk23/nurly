@@ -1,50 +1,10 @@
 #include "nurly.h"
 
-extern char* temp_path;
+#define NURLY_RESULT_UNKNOWN(r) do { r->output = strdup("(nurly error)"); r->return_code = STATE_UNKNOWN; } while (FALSE)
+
 extern char* nurly_server;
 
-static check_result* nurly_check_result_init(nurly_service_check_t* check_info) {
-    char*         output_file = NULL;
-    check_result* result_data = NULL;
-
-    do {
-        if (asprintf(&output_file, "%s/checkXXXXXX", temp_path) == -1) {
-            nurly_log("error: unable to allocate memory for check file name");
-            break;
-        }
-        if ((result_data = (check_result*)malloc(sizeof(check_result))) == NULL) {
-            nurly_log("error: unable to allocate memory for check result item");
-            break;
-        }
-
-        init_check_result(result_data);
-        result_data->host_name           = check_info->host;
-        result_data->service_description = check_info->service;
-        result_data->latency             = check_info->latency;
-        result_data->start_time          = check_info->start_time;
-        result_data->check_type          = SERVICE_CHECK_ACTIVE;
-        result_data->check_options       = CHECK_OPTION_NONE;
-        result_data->scheduled_check     = TRUE;
-        result_data->reschedule_check    = TRUE;
-        result_data->output_file         = output_file;
-
-        if ((result_data->output_file_fd = mkstemp(result_data->output_file)) == -1) {
-            nurly_log("error: unable to create check output file");
-            break;
-        } else {
-            result_data->output_file_fp = fdopen(result_data->output_file_fd, "w");
-        }
-
-        return result_data;
-    } while (FALSE);
-
-    NURLY_FREE(output_file);
-    NURLY_FREE_CHECK_RESULT(result_data);
-    return NULL;
-}
-
-static int nurly_check_curl_output(check_result* result_data, CURL* curl_handle, char* command_line) {
-    int    ret = FALSE;
+static void nurly_check_curl_output(check_result* result_data, CURL* curl_handle) {
     long   http_code;
     char*  query_uri = NULL;
     char*  query_url = NULL;
@@ -57,34 +17,42 @@ static int nurly_check_curl_output(check_result* result_data, CURL* curl_handle,
     do {
         if ((reply_obj = open_memstream(&reply_txt, &reply_len)) == NULL) {
             nurly_log("error: unable to create memstream object");
+            NURLY_RESULT_UNKNOWN(result_data);
             break;
         }
-        if ((query_uri = curl_easy_escape(curl_handle, command_line, 0)) == NULL) {
+        if ((query_uri = curl_easy_escape(curl_handle, (char*)result_data->next, 0)) == NULL) {
             nurly_log("error: unable to allocate memory for escaped command line");
+            NURLY_RESULT_UNKNOWN(result_data);
             break;
         }
         if (asprintf(&(query_url), "%s%s", nurly_server, query_uri) == -1) {
             nurly_log("error: unable to allocate memory for full command url");
+            NURLY_RESULT_UNKNOWN(result_data);
             break;
         }
         if (curl_easy_setopt(curl_handle, CURLOPT_ERRORBUFFER, curl_error) != CURLE_OK) {
             nurly_log("error: unable to set CURLOPT_ERRORBUFFER");
+            NURLY_RESULT_UNKNOWN(result_data);
             break;
         }
         if (curl_easy_setopt(curl_handle, CURLOPT_URL, query_url) != CURLE_OK) {
             nurly_log("error: unable to set CURLOPT_URL: %s", curl_error);
+            NURLY_RESULT_UNKNOWN(result_data);
             break;
         }
         if (curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, reply_obj) != CURLE_OK) {
             nurly_log("error: unable to set CURLOPT_WRITEDATA: %s", curl_error);
+            NURLY_RESULT_UNKNOWN(result_data);
             break;
         }
         if (curl_easy_perform(curl_handle) != CURLE_OK) {
             nurly_log("error: unable to perform curl: %s", curl_error);
+            NURLY_RESULT_UNKNOWN(result_data);
             break;
         }
         if (curl_easy_getinfo(curl_handle, CURLINFO_RESPONSE_CODE, &http_code) != CURLE_OK) {
             nurly_log("error: unable to get CURLINFO_RESPONSE_CODE: %s", curl_error);
+            NURLY_RESULT_UNKNOWN(result_data);
             break;
         }
 
@@ -92,8 +60,11 @@ static int nurly_check_curl_output(check_result* result_data, CURL* curl_handle,
 
         if ((result_data->output = escape_newlines(reply_txt)) == NULL) {
             nurly_log("error: unable to allocate memory for escaped output");
+            NURLY_RESULT_UNKNOWN(result_data);
             break;
         }
+
+        result_data->exited_ok = TRUE;
 
         switch (http_code) {
             case 200:
@@ -110,21 +81,17 @@ static int nurly_check_curl_output(check_result* result_data, CURL* curl_handle,
                 break;
         }
 
-        gettimeofday(&(result_data->finish_time), NULL);
-        result_data->exited_ok = TRUE;
-
-        ret = TRUE;
     } while (FALSE);
+
+    gettimeofday(&(result_data->finish_time), NULL);
 
     curl_free(query_uri);
     NURLY_FREE(query_url);
     NURLY_FREE(reply_txt);
     NURLY_CLOSE(reply_obj);
-
-    return ret;
 }
 
-static int nurly_check_save_output(check_result* result_data) {
+static void nurly_check_save_output(check_result* result_data) {
     char start_time[26];
 
     fprintf(result_data->output_file_fp, "### Active Check Result File ###\n");
@@ -148,28 +115,13 @@ static int nurly_check_save_output(check_result* result_data) {
 
     /* close the temp file */
     NURLY_CLOSE(result_data->output_file_fp);
-
-    return TRUE;
 }
 
-void nurly_check_service(CURL* curl_handle, nurly_service_check_t* check_info) {
-    check_result* result_data = NULL;
+void nurly_check_service(CURL* curl_handle, check_result* result_data) {
+    /* fetch and store results */
+    nurly_check_curl_output(result_data, curl_handle);
+    nurly_check_save_output(result_data);
 
-    do {
-        if ((result_data = nurly_check_result_init(check_info)) == NULL) {
-            break;
-        }
-        if (!nurly_check_curl_output(result_data, curl_handle, check_info->command)) {
-            break;
-        }
-        if (!nurly_check_save_output(result_data)) {
-            break;
-        }
-
-        /* move check result to queue directory */
-        move_check_result_to_queue(result_data->output_file);
-    } while (FALSE);
-
-    NURLY_FREE_CHECK_RESULT(result_data);
-    NURLY_FREE_SERVICE_CHECK(check_info);
+    /* move check result to queue directory */
+    move_check_result_to_queue(result_data->output_file);
 }

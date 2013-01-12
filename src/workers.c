@@ -3,40 +3,33 @@
 extern nurly_queue_t nurly_work_q;
 
 static void nurly_worker_loop(CURL* curl_handle) {
-    nurly_service_check_t* check_info = NULL;
-
-    curl_easy_setopt(curl_handle, CURLOPT_NOPROGRESS, (long)1);
-    curl_easy_setopt(curl_handle, CURLOPT_NOSIGNAL,   (long)1);
-    curl_easy_setopt(curl_handle, CURLOPT_TIMEOUT,    (long)10);
+    check_result* result_data = NULL;
 
     while (TRUE) {
-        check_info = (nurly_service_check_t*)nurly_queue_get(&nurly_work_q);
-        if (check_info) {
-            nurly_log("checking service '%s' on host '%s' ...", check_info->service, check_info->host);
+        result_data = (check_result*)nurly_queue_get(&nurly_work_q);
+        if (result_data) {
+            nurly_log("checking service '%s' on host '%s' ...", result_data->service_description, result_data->host_name);
         } else {
-            nurly_log("internal queue error getting service check");
+            nurly_log("queue is marked finished signaling thread termination");
             break;
         }
 
-        nurly_check_service(curl_handle, check_info);
+        nurly_check_service(curl_handle, result_data);
+        nurly_callback_free_result(result_data);
     }
 }
 
 void* nurly_worker_start(void* data) {
-    CURL*                  curl_handle;
-
-    pthread_setcancelstate(PTHREAD_CANCEL_ENABLE,  NULL);
-    pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED, NULL);
+    CURL* curl_handle;
 
     curl_handle = curl_easy_init();
+    curl_easy_setopt(curl_handle, CURLOPT_NOPROGRESS, (long)1);
+    curl_easy_setopt(curl_handle, CURLOPT_NOSIGNAL,   (long)1);
+    curl_easy_setopt(curl_handle, CURLOPT_TIMEOUT,    (long)10);
 
-    pthread_cleanup_push(nurly_worker_purge, (void*)curl_handle);
     nurly_worker_loop(curl_handle);
-    pthread_cleanup_pop(0);
+
+    curl_easy_cleanup(curl_handle);
 
     return NULL;
-}
-
-void nurly_worker_purge(void* data) {
-    curl_easy_cleanup((CURL*)data);
 }

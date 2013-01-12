@@ -11,7 +11,6 @@
 NEB_API_VERSION(CURRENT_NEB_API_VERSION)
 
 /* global variables from nagios */
-extern char*    temp_path;
 extern int      event_broker_options;
 
 /* global variables for nurly */
@@ -58,6 +57,7 @@ int nebmodule_deinit(int flags, int reason) {
         pthread_join(nurly_thread[i], NULL);
     }
 
+    nurly_work_q.purge = nurly_queue_free_item;
     curl_global_cleanup();
 
     return NEB_OK;
