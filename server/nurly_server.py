@@ -85,12 +85,29 @@ class NurlyWorker():
 
         init = time.time() * 1000
         rval = NurlyResult(head={'Content-type': 'text/plain'})
-        for func in env['nurly.action_list']:
-            if func(env, rval, self.call_parent):
-                break
+
+        allow = True
+        if env['nurly.allow_hosts']:
+            addr = set([env['REMOTE_ADDR']])
+            try:
+                host = socket.gethostbyaddr(env['REMOTE_ADDR'])[0]
+                addr.add(host)
+                addr.add(host.split('.')[0])
+            except:
+                pass
+
+            allow = len(list(True for host in addr if host in env['nurly.allow_hosts'])) > 0
+
+        if allow:
+            for func in env['nurly.action_list']:
+                if func(env, rval, self.call_parent):
+                    break
+            else:
+                rval.code = '404 Not Found'
+                rval.body = 'No handler found to process %s request for %s\n' % (env['REQUEST_METHOD'], env['PATH_INFO'])
         else:
-            rval.code = '404 Not Found'
-            rval.body = 'No handler found to process %s request for: %s\n' % (env['REQUEST_METHOD'], env['PATH_INFO'])
+            rval.code = '403 Forbidden'
+            rval.body = '%s is forbidden access to process %s request for %s\n' % (env['REMOTE_ADDR'], env['REQUEST_METHOD'], env['PATH_INFO'])
 
         rval.head['X-Nurly-Pid']  = str(os.getpid())
         rval.head['X-Nurly-Time'] = '%.02fms' % (time.time() * 1000 - init)
