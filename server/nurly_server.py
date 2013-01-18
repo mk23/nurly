@@ -121,12 +121,10 @@ class NurlyWorker():
 
 
 class NurlyServer():
-    def __init__(self, allow_hosts, plugin_path):
-        self.environ = {
-            'nurly.allow_hosts': allow_hosts,
-            'nurly.plugin_path': plugin_path,
-            'nurly.action_list': [],
-        }
+    def __init__(self, allow_hosts, **kwargs):
+        self.environ = dict(('nurly.%s' % k, v) for k, v in kwargs.items())
+        self.environ['nurly.allow_hosts'] = allow_hosts
+        self.environ['nurly.action_list'] = []
 
     def create_action(self, func, **kwargs):
         self.environ['nurly.action_list'].append(NurlyAction(func=func, **kwargs))
@@ -184,7 +182,7 @@ if __name__ == '__main__':
                         help='number of handler processes')
     args = parser.parse_args()
 
-    server = NurlyServer(args.allow_hosts, args.plugin_path)
+    server = NurlyServer(args.allow_hosts, plugin_path=args.plugin_path)
 
     server.create_action(server_status, path='/server-status')
     server.simple_server(args.server_port, args.num_workers)
