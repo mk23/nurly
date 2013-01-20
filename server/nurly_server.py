@@ -6,6 +6,7 @@ import importlib
 import os
 import select
 import shlex
+import signal
 import socket
 import sys
 import time
@@ -207,6 +208,12 @@ def check_command(env, res, parent):
         res.body = '%s: Plugin location not allowed by server configuration\n' % cmd[0]
         return
 
+
+    def handle_timeout(*args):
+        print '%s: execution timed out after %ds' % (cmd[0], env['nurly.mod_timeout'])
+        sys.exit(3)
+
+
     tmp_out = StringIO()
     old_out = sys.stdout
     old_err = sys.stderr
@@ -214,19 +221,24 @@ def check_command(env, res, parent):
         mod = importlib.import_module(os.path.splitext(os.path.basename(cmd[0]))[0])
         sys.stdout = sys.stderr = tmp_out
 
+        signal.signal(signal.SIGALRM, handle_timeout)
+        signal.alarm(env['nurly.mod_timeout'])
         mod.main(cmd[1:])
 
         print '%s: improperly returned' % cmd[0]
         sys.exit(3)
     except SystemExit as e:
+        signal.alarm(0)
         sys.stdout = old_out
         sys.stderr = old_err
         res.code = ERRORS.get(e.code, ERRORS[3])
         res.body = tmp_out.getvalue()
     except:
+        signal.alarm(0)
         sys.stdout = old_out
         sys.stderr = old_err
         traceback.print_exc()
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='nagios service check handler', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -234,6 +246,8 @@ if __name__ == '__main__':
                         help='list of allowed nagios hosts')
     parser.add_argument('-p', '--plugin-path', default='/usr/lib/nagios/plugins',
                         help='path to plugin directory')
+    parser.add_argument('-t', '--mod-timeout', default=10, type=int,
+                        help='module execution timeout')
     parser.add_argument('-s', '--server-port', default=1123, type=int,
                         help='server listen port')
     parser.add_argument('-n', '--num-workers', default=multiprocessing.cpu_count(), type=int,
@@ -243,7 +257,7 @@ if __name__ == '__main__':
     os.chdir(args.plugin_path)
     sys.path.append(args.plugin_path)
 
-    server = NurlyServer(args.allow_hosts, plugin_path=args.plugin_path)
+    server = NurlyServer(args.allow_hosts, mod_timeout=args.mod_timeout, plugin_path=args.plugin_path)
 
     server.create_action(server_status, path='/server-status')
     server.create_action(check_command, path='/check-command')
