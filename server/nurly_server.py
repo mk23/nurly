@@ -2,13 +2,17 @@
 
 import argparse
 import multiprocessing
+import importlib
 import os
 import select
+import shlex
 import socket
+import sys
 import time
 import traceback
 import wsgiref.simple_server
 
+from cStringIO import StringIO
 
 class WSGIServer(wsgiref.simple_server.WSGIServer):
     def __init__(self, *args):
@@ -179,6 +183,7 @@ class NurlyServer():
                 except:
                     traceback.print_exc()
 
+
 def server_status(env, res, parent):
     stat = parent('get_status', recv=True)
     res.body = 'Busy Workers: %d\nIdle Workers: %d\nScoreboard:   %s\n' % (
@@ -186,6 +191,42 @@ def server_status(env, res, parent):
         len(list(True for i in stat if i == NurlyStatus.ST_IDLE)),
         ''.join(NurlyStatus.label(i, True) for i in stat)
     )
+
+
+def check_command(env, res, parent):
+    ERRORS = {
+        0: '200 OK',
+        1: '221 WARNING',
+        2: '222 CRITICAL',
+        3: '223 UNKNOWN',
+    }
+
+    cmd = shlex.split(env['PATH_INFO'][15:])
+    if env['nurly.plugin_path'] != os.path.dirname(os.path.realpath(cmd[0])):
+        res.code = '403 Forbidden'
+        res.body = '%s: Plugin location not allowed by server configuration\n' % cmd[0]
+        return
+
+    tmp_out = StringIO()
+    old_out = sys.stdout
+    old_err = sys.stderr
+    try:
+        mod = importlib.import_module(os.path.splitext(os.path.basename(cmd[0]))[0])
+        sys.stdout = sys.stderr = tmp_out
+
+        mod.main(cmd[1:])
+
+        print '%s: improperly returned' % cmd[0]
+        sys.exit(3)
+    except SystemExit as e:
+        sys.stdout = old_out
+        sys.stderr = old_err
+        res.code = ERRORS.get(e.code, ERRORS[3])
+        res.body = tmp_out.getvalue()
+    except:
+        sys.stdout = old_out
+        sys.stderr = old_err
+        traceback.print_exc()
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='nagios service check handler', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -199,7 +240,11 @@ if __name__ == '__main__':
                         help='number of handler processes')
     args = parser.parse_args()
 
+    os.chdir(args.plugin_path)
+    sys.path.append(args.plugin_path)
+
     server = NurlyServer(args.allow_hosts, plugin_path=args.plugin_path)
 
     server.create_action(server_status, path='/server-status')
+    server.create_action(check_command, path='/check-command')
     server.simple_server(args.server_port, args.num_workers)
