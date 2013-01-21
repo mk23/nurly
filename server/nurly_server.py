@@ -111,7 +111,7 @@ class NurlyWorker():
                     break
             else:
                 rval.code = '404 Not Found'
-                rval.body = 'No handler found to process %s request for %s\n' % (env['REQUEST_METHOD'], env['PATH_INFO'])
+                rval.body = 'no handler found to process %s request for %s\n' % (env['REQUEST_METHOD'], env['PATH_INFO'])
         else:
             rval.code = '403 Forbidden'
             rval.body = '%s is forbidden access to process %s request for %s\n' % (env['REMOTE_ADDR'], env['REQUEST_METHOD'], env['PATH_INFO'])
@@ -218,7 +218,7 @@ def check_command(env, res, parent):
     cmd = shlex.split(env['PATH_INFO'][15:])
     if env['nurly.plugin_path'] != os.path.dirname(os.path.realpath(cmd[0])):
         res.code = '403 Forbidden'
-        res.body = '%s: Plugin location not allowed by server configuration\n' % cmd[0]
+        res.body = '%s: plugin location not allowed by server configuration\n' % cmd[0]
         return
 
 
