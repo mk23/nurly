@@ -241,17 +241,16 @@ def check_command(env, res, parent):
         print '%s: improperly returned' % cmd[0]
         sys.exit(3)
     except SystemExit as e:
-        signal.alarm(0)
-        sys.stdout = old_out
-        sys.stderr = old_err
         res.code = ERRORS.get(e.code, ERRORS[3])
-        res.body = tmp_out.getvalue()
-    except:
-        signal.alarm(0)
-        sys.stdout = old_out
-        sys.stderr = old_err
+    except Exception as e:
+        res.code = ERRORS[3]
         traceback.print_exc()
 
+    signal.alarm(0)
+    sys.stdout = old_out
+    sys.stderr = old_err
+
+    res.body = tmp_out.getvalue()
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='nagios service check handler', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
