@@ -133,7 +133,12 @@ class NurlyWorker():
             if recv:
                 return self.parent.recv()
 
+    def reap_children(self, *args):
+        os.waitpid(-1, os.WNOHANG)
+
     def serve_forever(self, parent, unused_pipes):
+        signal.signal(signal.SIGCHLD, self.reap_children)
+
         try:
             for pipe in unused_pipes:
                 pipe.close()
