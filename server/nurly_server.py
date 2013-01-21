@@ -261,11 +261,12 @@ if __name__ == '__main__':
     parser.add_argument('-n', '--num-workers', default=multiprocessing.cpu_count(), type=int,
                         help='number of handler processes')
     args = parser.parse_args()
+    path = os.path.realpath(args.plugin_path)
 
-    os.chdir(args.plugin_path)
-    sys.path.append(args.plugin_path)
+    os.chdir(path)
+    sys.path.append(path)
 
-    server = NurlyServer(args.allow_hosts, mod_timeout=args.mod_timeout, plugin_path=args.plugin_path)
+    server = NurlyServer(args.allow_hosts, mod_timeout=args.mod_timeout, plugin_path=path)
 
     server.create_action(server_status, path='/server-status')
     server.create_action(check_command, path='/check-command')
