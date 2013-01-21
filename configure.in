@@ -1,13 +1,13 @@
 AC_PREREQ([2.68])
 
 AC_INIT([nurly], [1.0.0], [max.kalika+projects@gmail.com])
+AC_USE_SYSTEM_EXTENSIONS
+
 AM_INIT_AUTOMAKE([nurly], [1.0.0]) 
 LT_INIT
 
-
-AC_CONFIG_SRCDIR([src])
-
-AC_PROG_CC
+AC_GNU_SOURCE
+AC_PROG_CC_C99
 
 AC_CHECK_HEADERS([curl/curl.h])
 AC_CHECK_HEADERS([errno.h pthread.h stdio.h stdarg.h stdlib.h string.h unistd.h time.h])
@@ -24,5 +24,6 @@ AC_ENABLE_SHARED
 AC_DISABLE_STATIC
 
 AC_CONFIG_MACRO_DIR([m4])
+AC_CONFIG_SRCDIR([src])
 AC_CONFIG_FILES([Makefile src/Makefile])
 AC_OUTPUT
