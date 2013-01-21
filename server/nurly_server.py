@@ -8,12 +8,12 @@ import select
 import shlex
 import signal
 import socket
+import subprocess
 import sys
+import tempfile
 import time
 import traceback
 import wsgiref.simple_server
-
-from cStringIO import StringIO
 
 class WSGIServer(wsgiref.simple_server.WSGIServer):
     def __init__(self, *args):
@@ -215,28 +215,38 @@ def check_command(env, res, parent):
         3: '223 UNKNOWN',
     }
 
-    cmd = shlex.split(env['PATH_INFO'][15:])
-    if env['nurly.plugin_path'] != os.path.dirname(os.path.realpath(cmd[0])):
-        res.code = '403 Forbidden'
-        res.body = '%s: plugin location not allowed by server configuration\n' % cmd[0]
-        return
-
+    class check_wrapper:
+        @staticmethod
+        def main(argv):
+            sys.exit(subprocess.Popen(argv, stdout=tmp_out, stderr=tmp_out).wait())
 
     def handle_timeout(*args):
         print '%s: execution timed out after %ds' % (cmd[0], env['nurly.mod_timeout'])
         sys.exit(3)
 
+    cmd = shlex.split(env['PATH_INFO'][15:])
+    if os.path.dirname(os.path.realpath(cmd[0])) not in env['nurly.plugin_path']:
+        res.code = '403 Forbidden'
+        res.body = '%s: plugin location not allowed by server configuration\n' % cmd[0]
+        return
+    else:
+        try:
+            mod = importlib.import_module(os.path.splitext(os.path.basename(cmd[0]))[0])
+            arg = cmd[1:]
+        except ImportError:
+            mod = check_wrapper
+            arg = cmd
 
-    tmp_out = StringIO()
+    tmp_out = tempfile.SpooledTemporaryFile()
     old_out = sys.stdout
     old_err = sys.stderr
     try:
-        mod = importlib.import_module(os.path.splitext(os.path.basename(cmd[0]))[0])
         sys.stdout = sys.stderr = tmp_out
 
         signal.signal(signal.SIGALRM, handle_timeout)
         signal.alarm(env['nurly.mod_timeout'])
-        mod.main(cmd[1:])
+
+        mod.main(arg)
 
         print '%s: improperly returned' % cmd[0]
         sys.exit(3)
@@ -250,13 +260,14 @@ def check_command(env, res, parent):
     sys.stdout = old_out
     sys.stderr = old_err
 
-    res.body = tmp_out.getvalue()
+    tmp_out.seek(0)
+    res.body = tmp_out.read()
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='nagios service check handler', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-a', '--allow-hosts', default=[], nargs='+',
                         help='list of allowed nagios hosts')
-    parser.add_argument('-p', '--plugin-path', default='/usr/lib/nagios/plugins',
+    parser.add_argument('-p', '--plugin-path', default=['/usr/lib/nagios/plugins'], nargs='+',
                         help='path to plugin directory')
     parser.add_argument('-t', '--mod-timeout', default=10, type=int,
                         help='module execution timeout')
@@ -265,12 +276,11 @@ if __name__ == '__main__':
     parser.add_argument('-n', '--num-workers', default=multiprocessing.cpu_count(), type=int,
                         help='number of handler processes')
     args = parser.parse_args()
-    path = os.path.realpath(args.plugin_path)
+    args.plugin_path = [os.path.realpath(i) for i in args.plugin_path]
 
-    os.chdir(path)
-    sys.path.append(path)
+    sys.path.extend(args.plugin_path)
 
-    server = NurlyServer(args.allow_hosts, mod_timeout=args.mod_timeout, plugin_path=path)
+    server = NurlyServer(args.allow_hosts, mod_timeout=args.mod_timeout, plugin_path=args.plugin_path)
 
     server.create_action(server_status, path='/server-status')
     server.create_action(check_command, path='/check-command')
