@@ -9,6 +9,7 @@
 
 #include <curl/curl.h>
 
+#include "config.h"
 #include "queue.h"
 #include "nagios/nagios.h"
 #include "nagios/broker.h"
@@ -17,7 +18,7 @@
 #include "nagios/nebcallbacks.h"
 #include "nagios/nebstructs.h"
 
-#define NURLY_VERSION "1.0.0"
+#define NURLY_VERSION PACKAGE_VERSION
 #define NURLY_THREADS 20
 
 #define NURLY_FREE(p) \

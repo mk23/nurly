@@ -26,5 +26,6 @@ AC_CHECK_FUNCS([gettimeofday strdup open_memstream fdopen fprintf asprintf vsnpr
 AC_ENABLE_SHARED
 AC_DISABLE_STATIC
 
+AC_CONFIG_HEADERS(config.h)
 AC_CONFIG_FILES([Makefile src/Makefile])
 AC_OUTPUT
