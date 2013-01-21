@@ -48,6 +48,8 @@ class NurlyStatus():
         self.proc = proc
         self.pipe = pipe
 
+        self.fileno = self.pipe.fileno
+
         self.count = 0
         self.state = NurlyStatus.ST_IDLE
 
@@ -177,10 +179,16 @@ class NurlyServer():
 
     def handle_events(self):
         while True:
-            for pipe in select.select([i.pipe for i in self.states.values()], [], [])[0]:
+            for chld in select.select(self.states.values(), [], [])[0]:
                 try:
-                    pid, func, args = pipe.recv()
+                    pid, func, args = chld.pipe.recv()
                     getattr(self, 'worker_%s' % func, lambda *a: True)(pid, *args)
+                except EOFError:
+                    chld.proc.worker.join()
+                    del self.states[chld.proc.pid]
+
+                    pid, status = self.create_worker()
+                    self.states[pid] = status
                 except:
                     traceback.print_exc()
 
