@@ -52,12 +52,8 @@ int nebmodule_deinit(int flags, int reason) {
     neb_deregister_callback(NEBCALLBACK_PROCESS_DATA,       (void*)nurly_module);
     neb_deregister_callback(NEBCALLBACK_SERVICE_CHECK_DATA, (void*)nurly_module);
 
-    for (long i = 0; i < NURLY_THREADS; i++) {
-        pthread_cancel(nurly_thread[i]);
-        pthread_join(nurly_thread[i], NULL);
-    }
-
     nurly_work_q.purge = nurly_queue_free_item;
+    nurly_queue_close(&nurly_work_q);
     curl_global_cleanup();
 
     return NEB_OK;
