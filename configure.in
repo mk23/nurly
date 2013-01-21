@@ -1,0 +1,28 @@
+AC_PREREQ([2.68])
+
+AC_INIT([nurly], [1.0.0], [max.kalika+projects@gmail.com])
+AM_INIT_AUTOMAKE([nurly], [1.0.0]) 
+LT_INIT
+
+
+AC_CONFIG_SRCDIR([src])
+
+AC_PROG_CC
+
+AC_CHECK_HEADERS([curl/curl.h])
+AC_CHECK_HEADERS([errno.h pthread.h stdio.h stdarg.h stdlib.h string.h unistd.h time.h])
+
+AC_CHECK_LIB([curl], [curl_global_init])
+AC_CHECK_LIB([pthread], [pthread_create])
+
+AC_TYPE_SIZE_T
+
+AC_FUNC_MALLOC
+AC_CHECK_FUNCS([gettimeofday strdup open_memstream fdopen fprintf asprintf vsnprintf])
+
+AC_ENABLE_SHARED
+AC_DISABLE_STATIC
+
+AC_CONFIG_MACRO_DIR([m4])
+AC_CONFIG_FILES([Makefile src/Makefile])
+AC_OUTPUT
