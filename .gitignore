@@ -1,3 +1,5 @@
-*.o
 *.pyc
 *.sw*
+config.*
+Makefile
+Makefile.in
