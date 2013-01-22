@@ -1,0 +1,16 @@
+Source: nurly
+Section: net
+Priority: extra
+Maintainer: Max Kalika <max@topsy.com>
+Build-Depends: debhelper (>= 7), python (>= 2.7), libcurl4-openssl-dev
+Standards-Version: 3.8.3
+
+Package: nurly-module
+Architecture: amd64
+Depends: ${shlibs:Depends} ${misc:Depends}, nagios3, libcurl4-openssl-dev
+Description: NEB module to distribute service checks via libcurl
+
+Package: nurly-server
+Architecture: any
+Depends: ${misc:Depends}, python (>= 2.7)
+Description: Pre-forked import-caching python server for the Nurly NEB module
