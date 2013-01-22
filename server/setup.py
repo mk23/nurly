@@ -7,6 +7,7 @@ if __name__ == '__main__':
     setup(
         author='Max Kalika',
         author_email='max@topsy.com',
+        url='http://potato.georx.net/cgit/cgit.cgi/nurly/',
 
         name='nurly-server',
         version=VERSION,
