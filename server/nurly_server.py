@@ -15,6 +15,8 @@ import time
 import traceback
 import wsgiref.simple_server
 
+from nurly.version import VERSION
+
 class WSGIServer(wsgiref.simple_server.WSGIServer):
     def __init__(self, *args):
         self.allow_reuse_address = True
@@ -207,6 +209,10 @@ def server_status(env, res, parent):
     )
 
 
+def nurly_version(env, res, parent):
+    res.body = 'Version: %s\n' % VERSION
+
+
 def check_command(env, res, parent):
     ERRORS = {
         0: '200 OK',
@@ -283,5 +289,6 @@ if __name__ == '__main__':
     server = NurlyServer(args.allow_hosts, mod_timeout=args.mod_timeout, plugin_path=args.plugin_path)
 
     server.create_action(server_status, path='/server-status')
+    server.create_action(nurly_version, path='/nurly-version')
     server.create_action(check_command, path='/check-command')
     server.simple_server(args.server_port, args.num_workers)
