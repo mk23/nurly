@@ -1,2 +1,4 @@
+EXTRA_DIST = server
 ACLOCAL_AMFLAGS = -Im4
+
 SUBDIRS = src
