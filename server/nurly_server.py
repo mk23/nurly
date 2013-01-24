@@ -6,7 +6,7 @@ import os
 import sys
 
 from nurly.server import NurlyServer
-from check_command import check_command
+from nurly.handlers import check_command
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='nagios service check handler', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
