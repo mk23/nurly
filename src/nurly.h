@@ -1,3 +1,5 @@
+#include "config.h"
+
 #include <stdio.h>
 #include <errno.h>
 #include <stdarg.h>
@@ -9,7 +11,6 @@
 
 #include <curl/curl.h>
 
-#include "config.h"
 #include "queue.h"
 #include "nagios/nagios.h"
 #include "nagios/broker.h"
