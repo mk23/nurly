@@ -7,20 +7,17 @@
 # This special exception was added by Craig Small in version 0.37 of dh-make.
 
 # Uncomment this to turn on verbose mode.
-#export DH_VERBOSE=1
-DESTDIR=$(CURDIR)/debian/$(shell dh_listpackages)
-PYTHON ?= /usr/bin/python2.7
-PREFIX ?= /usr
+export DH_VERBOSE=1
+
+PYVERS ?= $(shell pyversions -r)
 
 %:
 	dh $@ --with autoreconf python2
 
-#override_dh_auto_configure:
-#	/usr/bin/autoreconf -i
-#	dh_auto_configure
-#
-#override_dh_auto_build:
-#	$(PYTHON) server/setup.py build
-#
-#override_dh_auto_install:
-#	$(PYTHON) server/setup.py install --install-layout=deb --prefix=$(PREFIX) --root=$(DESTDIR)
+override_dh_auto_clean:
+	dh_auto_clean
+	for python in $(PYVERS) ; do cd server && $$python setup.py clean ; done
+
+override_dh_auto_install:
+	dh_auto_install
+	for python in $(PYVERS) ; do cd server && $$python setup.py install --install-layout=deb --root=$(CURDIR)/debian/nurly-server ; done
