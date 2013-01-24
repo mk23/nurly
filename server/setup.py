@@ -1,9 +1,14 @@
 #!/usr/bin/env python2.7
 
-from nurly.version import VERSION
+import sys
 from distutils.core import setup
 
 if __name__ == '__main__':
+    if 'install' in sys.argv:
+        from nurly.version import VERSION
+    else:
+        VERSION = None
+
     setup(
         author='Max Kalika',
         author_email='max@topsy.com',
