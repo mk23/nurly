@@ -1,4 +1,5 @@
 import traceback
+import types
 
 class NurlyResult():
     def __init__(self, code='200 OK', head=None, body=''):
@@ -34,7 +35,7 @@ class NurlyStatus():
 
 class NurlyAction():
     def __init__(self, func, path='/', verb='GET'):
-        self.func = func
+        self.func = func if type(func) is not types.ModuleType else getattr(func, func.__name__.split('.')[-1])
         self.path = path
         self.verb = verb
 
