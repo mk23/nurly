@@ -1,4 +1,4 @@
-EXTRA_DIST = server
+EXTRA_DIST = nagios
 ACLOCAL_AMFLAGS = -Im4
 
 SUBDIRS = src
