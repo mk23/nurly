@@ -4,7 +4,7 @@ import sys
 from distutils.core import setup
 
 if __name__ == '__main__':
-    if 'install' in sys.argv:
+    if 'install' in sys.argv or 'sdist' in sys.argv:
         from nurly.version import VERSION
     else:
         VERSION = None
@@ -16,6 +16,6 @@ if __name__ == '__main__':
 
         name='nurly-server',
         version=VERSION,
-        scripts=['nurly_server.py', 'check_command.py'],
-        packages=['nurly'],
+        scripts=['nurly_server.py'],
+        packages=['nurly', 'nurly.handlers'],
     )
