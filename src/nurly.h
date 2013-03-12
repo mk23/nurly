@@ -12,7 +12,6 @@
 #include <curl/curl.h>
 
 #include "queue.h"
-#include "settings.h"
 #include "nagios/nagios.h"
 #include "nagios/broker.h"
 #include "nagios/neberrors.h"
@@ -32,10 +31,23 @@
 #define NURLY_TIMEDIFF(a,b) \
     (NURLY_TIMESTAMP(a) - NURLY_TIMESTAMP(b))
 
+#define NURLY_CONFIG_INITIALIZER { NULL, NULL, 2, 20 }
+
 typedef struct timeval timeval_t;
+
+typedef struct nurly_config {
+    char* checks_url;
+    char* health_url;
+    int   health_interval;
+    int   worker_threads;
+} nurly_config_t;
 
 /* utility */
 void nurly_log(const char*, ...);
+
+/* configs */
+int  nurly_config_read(char*, nurly_config_t*);
+void nurly_config_free(nurly_config_t*);
 
 /* callbacks */
 int  nurly_callback_process_data(int, void*);
