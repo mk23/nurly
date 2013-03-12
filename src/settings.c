@@ -93,6 +93,11 @@ int nurly_config_read(char* cfg_name, nurly_config_t* nurly_config) {
     NURLY_FREE(cfg_line);
 	mmap_fclose(cfg_file);
 
+    if (nurly_config->checks_url == NULL) {
+        nurly_log("error: no checks_url provided, nurly will be disabled.");
+        parse_error = TRUE;
+    }
+
     return parse_error == TRUE ? ERROR : OK;
 }
 
