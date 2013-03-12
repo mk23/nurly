@@ -2,7 +2,7 @@
 
 #define NURLY_RESULT_UNKNOWN(r) do { r->output = strdup("(nurly error)"); r->return_code = STATE_UNKNOWN; } while (FALSE)
 
-extern char* nurly_server;
+extern nurly_config_t nurly_config;
 
 static void nurly_check_curl_output(check_result* result_data, CURL* curl_handle) {
     long   http_code;
@@ -25,7 +25,7 @@ static void nurly_check_curl_output(check_result* result_data, CURL* curl_handle
             NURLY_RESULT_UNKNOWN(result_data);
             break;
         }
-        if (asprintf(&(query_url), "%s%s", nurly_server, query_uri) == -1) {
+        if (asprintf(&(query_url), "%s%s", nurly_config.checks_url, query_uri) == -1) {
             nurly_log("error: unable to allocate memory for full command url");
             NURLY_RESULT_UNKNOWN(result_data);
             break;

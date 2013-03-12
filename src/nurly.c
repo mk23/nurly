@@ -7,10 +7,8 @@ NEB_API_VERSION(CURRENT_NEB_API_VERSION)
 extern int      event_broker_options;
 
 /* global variables for nurly */
-nurly_config_t  nurly_config = NURLY_CONFIG_INITIALIZER;
-
-char*           nurly_server;
 nurly_queue_t   nurly_queue  = NURLY_QUEUE_INITIALIZER;
+nurly_config_t  nurly_config = NURLY_CONFIG_INITIALIZER;
 nebmodule*      nurly_module = NULL;
 pthread_t       nurly_thread[NURLY_THREADS];
 
@@ -27,7 +25,6 @@ int nebmodule_init(int flags, char* args, nebmodule* handle) {
     }
 
     if (nurly_config_read(args, &nurly_config) == OK) {
-        nurly_server = nurly_config.checks_url;
         nurly_log("starting nurly via %s", nurly_config.checks_url);
     } else {
         return NEB_ERROR;
