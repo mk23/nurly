@@ -10,7 +10,7 @@ AC_CONFIG_SRCDIR(src)
 AC_CONFIG_MACRO_DIR(m4)
 
 AC_CONFIG_HEADERS(config.h)
-AC_CONFIG_FILES([server/nurly/version.py Makefile src/Makefile])
+AC_CONFIG_FILES([Makefile src/Makefile])
 
 AC_GNU_SOURCE
 AC_PROG_CC_C99
