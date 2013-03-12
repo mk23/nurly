@@ -1,3 +1,13 @@
+nurly (1.0.1) precise; urgency=low
+
+  * Tagging 1.0.1
+  * [60be578] Finalize release.py integration.
+  * [617bc29] Issue #1: add release management via release.py.
+  * [a667fd9] Static version file for the server.
+  * [c87484b] autoconf will no longer handle server's version.
+
+ -- Max Kalika <max@topsy.com>  Tue, 12 Mar 2013 13:34:42 -0700
+
 nurly (1.0.0) precise; urgency=low
 
   * Initial version.
