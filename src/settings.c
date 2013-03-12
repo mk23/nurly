@@ -33,7 +33,7 @@ int nurly_config_read(char* cfg_name, nurly_config_t* nurly_config) {
 
         /* extract key */
         if ((temp_ptr = my_strtok(cfg_line, "=")) == NULL) {
-            nurly_log("warning: invalid cofiguration line: (%02d) %s", cfg_file->current_line, cfg_line);
+            nurly_log("warning: invalid configuration on line %2d: %s", cfg_file->current_line, cfg_line);
             continue;
         }
         if ((cfg_key = (char*)strdup(temp_ptr)) == NULL) {
@@ -43,7 +43,7 @@ int nurly_config_read(char* cfg_name, nurly_config_t* nurly_config) {
         }
         /* extract value */
         if ((temp_ptr = my_strtok(NULL, "\n")) == NULL) {
-            nurly_log("warning: invalid cofiguration line: (%02d) %s", cfg_file->current_line, cfg_line);
+            nurly_log("warning: invalid configuration on line %2d: %s", cfg_file->current_line, cfg_line);
             continue;
         }
         if ((cfg_val = (char*)strdup(temp_ptr)) == NULL) {
