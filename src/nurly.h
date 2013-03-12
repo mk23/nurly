@@ -21,7 +21,6 @@
 #include "nagios/nebstructs.h"
 
 #define NURLY_VERSION PACKAGE_VERSION
-#define NURLY_THREADS 20
 
 #define NURLY_FREE(p) \
     do { if (p) { free(p); p = NULL; } } while (FALSE)

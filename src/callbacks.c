@@ -1,9 +1,10 @@
 #include "nurly.h"
 
-extern char*         temp_path;
-extern nurly_queue_t nurly_queue;
-extern nebmodule*    nurly_module;
-extern pthread_t     nurly_thread[NURLY_THREADS];
+extern char*          temp_path;
+extern nurly_queue_t  nurly_queue;
+extern nurly_config_t nurly_config;
+extern nebmodule*     nurly_module;
+extern pthread_t*     nurly_thread;
 
 int nurly_callback_process_data(int event_type, void* data) {
     nebstruct_process_data* process_data;
@@ -18,7 +19,14 @@ int nurly_callback_process_data(int event_type, void* data) {
         curl_global_init(CURL_GLOBAL_DEFAULT);
         nurly_queue.purge = nurly_callback_free_result;
 
-        for (long i = 0; i < NURLY_THREADS; i++) {
+        if ((nurly_thread = (pthread_t*)malloc(sizeof(pthread_t) * nurly_config.worker_threads)) == NULL) {
+            nurly_log("error: unable to allocate memory for worker threads");
+            return NEB_ERROR;
+        } else {
+            nurly_log("allocated %d worker threads", nurly_config.worker_threads);
+        }
+
+        for (long i = 0; i < nurly_config.worker_threads; i++) {
             pthread_create(&nurly_thread[i], NULL, nurly_worker_start, (void*)i);
         }
 
