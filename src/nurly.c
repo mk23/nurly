@@ -1,10 +1,3 @@
-/*****************************************************************************
- * Compile with the following command:
- *
- *     gcc -O0 -ggdb -std=c99 -D_GNU_SOURCE=1 -I. -I.. -shared -fPIC -o nurly.o *.c -lcurl -lrt -pthread
- *
- *****************************************************************************/
-
 #include "nurly.h"
 
 /* specify event broker API version (required) */
@@ -14,13 +7,14 @@ NEB_API_VERSION(CURRENT_NEB_API_VERSION)
 extern int      event_broker_options;
 
 /* global variables for nurly */
+nurly_config_t  nurly_config = NURLY_CONFIG_INITIALIZER;
+
 char*           nurly_server;
 nurly_queue_t   nurly_work_q = NURLY_QUEUE_INITIALIZER;
 nebmodule*      nurly_module = NULL;
 pthread_t       nurly_thread[NURLY_THREADS];
 
 int nebmodule_init(int flags, char* args, nebmodule* handle) {
-    nurly_server = args;
     nurly_module = handle;
 
     if (!(event_broker_options & BROKER_PROGRAM_STATE)) {
@@ -32,7 +26,12 @@ int nebmodule_init(int flags, char* args, nebmodule* handle) {
         return NEB_ERROR;
     }
 
-    nurly_log("starting nurly via %s", nurly_server);
+    if (nurly_config_read(args, &nurly_config) == OK) {
+        nurly_server = nurly_config.checks_url;
+        nurly_log("starting nurly via %s", nurly_config.checks_url);
+    } else {
+        return NEB_ERROR;
+    }
 
     /* module info */
     neb_set_module_info(nurly_module, NEBMODULE_MODINFO_TITLE,     "Nurly");
@@ -40,7 +39,7 @@ int nebmodule_init(int flags, char* args, nebmodule* handle) {
     neb_set_module_info(nurly_module, NEBMODULE_MODINFO_COPYRIGHT, "Copyright (c) 2013 Max Kalika");
     neb_set_module_info(nurly_module, NEBMODULE_MODINFO_VERSION,   NURLY_VERSION);
     neb_set_module_info(nurly_module, NEBMODULE_MODINFO_LICENSE,   "as-is");
-    neb_set_module_info(nurly_module, NEBMODULE_MODINFO_DESC,      "distribute host/service checks via libcurl");
+    neb_set_module_info(nurly_module, NEBMODULE_MODINFO_DESC,      "distribute service checks via libcurl");
 
     /* register initializer callback */
     neb_register_callback(NEBCALLBACK_PROCESS_DATA, nurly_module, 0, nurly_callback_process_data);
@@ -54,6 +53,7 @@ int nebmodule_deinit(int flags, int reason) {
 
     nurly_work_q.purge = nurly_queue_free_item;
     nurly_queue_close(&nurly_work_q);
+    nurly_config_free(&nurly_config);
     curl_global_cleanup();
 
     return NEB_OK;

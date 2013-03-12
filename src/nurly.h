@@ -12,6 +12,7 @@
 #include <curl/curl.h>
 
 #include "queue.h"
+#include "settings.h"
 #include "nagios/nagios.h"
 #include "nagios/broker.h"
 #include "nagios/neberrors.h"
