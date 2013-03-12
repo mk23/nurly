@@ -1,7 +1,7 @@
 #include "nurly.h"
 
 extern char*         temp_path;
-extern nurly_queue_t nurly_work_q;
+extern nurly_queue_t nurly_queue;
 extern nebmodule*    nurly_module;
 extern pthread_t     nurly_thread[NURLY_THREADS];
 
@@ -16,7 +16,7 @@ int nurly_callback_process_data(int event_type, void* data) {
 
     if (process_data->type == NEBTYPE_PROCESS_EVENTLOOPSTART) {
         curl_global_init(CURL_GLOBAL_DEFAULT);
-        nurly_work_q.purge = nurly_callback_free_result;
+        nurly_queue.purge = nurly_callback_free_result;
 
         for (long i = 0; i < NURLY_THREADS; i++) {
             pthread_create(&nurly_thread[i], NULL, nurly_worker_start, (void*)i);
@@ -86,7 +86,7 @@ int nurly_callback_service_check(int event_type, void* data) {
         result_data->start_time          = service_data->start_time;
         result_data->latency             = service_data->latency;
 
-        nurly_queue_put(&nurly_work_q, (void*)result_data);
+        nurly_queue_put(&nurly_queue, (void*)result_data);
 
         return NEBERROR_CALLBACKOVERRIDE;
     } while (FALSE);

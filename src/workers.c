@@ -1,12 +1,12 @@
 #include "nurly.h"
 
-extern nurly_queue_t nurly_work_q;
+extern nurly_queue_t nurly_queue;
 
 static void nurly_worker_loop(CURL* curl_handle) {
     check_result* result_data = NULL;
 
     while (TRUE) {
-        result_data = (check_result*)nurly_queue_get(&nurly_work_q);
+        result_data = (check_result*)nurly_queue_get(&nurly_queue);
         if (result_data) {
             nurly_log("checking service '%s' on host '%s' ...", result_data->service_description, result_data->host_name);
         } else {

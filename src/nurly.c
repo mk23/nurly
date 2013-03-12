@@ -10,7 +10,7 @@ extern int      event_broker_options;
 nurly_config_t  nurly_config = NURLY_CONFIG_INITIALIZER;
 
 char*           nurly_server;
-nurly_queue_t   nurly_work_q = NURLY_QUEUE_INITIALIZER;
+nurly_queue_t   nurly_queue  = NURLY_QUEUE_INITIALIZER;
 nebmodule*      nurly_module = NULL;
 pthread_t       nurly_thread[NURLY_THREADS];
 
@@ -51,8 +51,8 @@ int nebmodule_deinit(int flags, int reason) {
     neb_deregister_callback(NEBCALLBACK_PROCESS_DATA,       (void*)nurly_module);
     neb_deregister_callback(NEBCALLBACK_SERVICE_CHECK_DATA, (void*)nurly_module);
 
-    nurly_work_q.purge = nurly_queue_free_item;
-    nurly_queue_close(&nurly_work_q);
+    nurly_queue.purge = nurly_queue_free_item;
+    nurly_queue_close(&nurly_queue);
     nurly_config_free(&nurly_config);
     curl_global_cleanup();
 
