@@ -10,7 +10,7 @@ static void nurly_worker_loop(CURL* curl_handle) {
         if (result_data) {
             nurly_log("checking service '%s' on host '%s' ...", result_data->service_description, result_data->host_name);
         } else {
-            nurly_log("queue is marked finished signaling thread termination");
+            nurly_log("queue is closed, terminating worker thread");
             break;
         }
 
