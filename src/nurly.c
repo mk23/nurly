@@ -7,10 +7,13 @@ NEB_API_VERSION(CURRENT_NEB_API_VERSION)
 extern int      event_broker_options;
 
 /* global variables for nurly */
-nurly_queue_t   nurly_queue  = NURLY_QUEUE_INITIALIZER;
-nurly_config_t  nurly_config = NURLY_CONFIG_INITIALIZER;
-nebmodule*      nurly_module = NULL;
-pthread_t*      nurly_thread = NULL;
+nurly_queue_t   nurly_queue   = NURLY_QUEUE_INITIALIZER;
+nurly_config_t  nurly_config  = NURLY_CONFIG_INITIALIZER;
+nebmodule*      nurly_module  = NULL;
+pthread_t*      check_threads = NULL;
+
+int             nurly_health  = FALSE;
+pthread_t       health_thread;
 
 int nebmodule_init(int flags, char* args, nebmodule* handle) {
     nurly_module = handle;
@@ -53,7 +56,7 @@ int nebmodule_deinit(int flags, int reason) {
     nurly_config_free(&nurly_config);
     curl_global_cleanup();
 
-    NURLY_FREE(nurly_thread);
+    NURLY_FREE(check_threads);
 
     return NEB_OK;
 }

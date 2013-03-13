@@ -42,6 +42,11 @@ typedef struct nurly_config {
     int   worker_threads;
 } nurly_config_t;
 
+typedef enum nurly_worker {
+    NURLY_WORKER_CHECKS,
+    NURLY_WORKER_HEALTH
+} nurly_worker_t;
+
 /* utility */
 void nurly_log(const char*, ...);
 
@@ -59,3 +64,6 @@ void* nurly_worker_start(void*);
 
 /* checks */
 void nurly_check_service(CURL*, check_result*);
+
+/* health */
+void nurly_check_health(CURL*);

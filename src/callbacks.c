@@ -4,7 +4,10 @@ extern char*          temp_path;
 extern nurly_queue_t  nurly_queue;
 extern nurly_config_t nurly_config;
 extern nebmodule*     nurly_module;
-extern pthread_t*     nurly_thread;
+extern pthread_t*     check_threads;
+
+extern int            nurly_health;
+extern pthread_t      health_thread;
 
 int nurly_callback_process_data(int event_type, void* data) {
     nebstruct_process_data* process_data;
@@ -19,15 +22,17 @@ int nurly_callback_process_data(int event_type, void* data) {
         curl_global_init(CURL_GLOBAL_DEFAULT);
         nurly_queue.purge = nurly_callback_free_result;
 
-        if ((nurly_thread = (pthread_t*)malloc(sizeof(pthread_t) * nurly_config.worker_threads)) == NULL) {
+        if ((check_threads = (pthread_t*)malloc(sizeof(pthread_t) * nurly_config.worker_threads)) == NULL) {
             nurly_log("error: unable to allocate memory for worker threads");
             return NEB_ERROR;
         } else {
             nurly_log("allocated %d worker threads", nurly_config.worker_threads);
         }
 
+        pthread_create(&health_thread, NULL, nurly_worker_start, (void*)NURLY_WORKER_HEALTH);
+
         for (long i = 0; i < nurly_config.worker_threads; i++) {
-            pthread_create(&nurly_thread[i], NULL, nurly_worker_start, (void*)i);
+            pthread_create(&check_threads[i], NULL, nurly_worker_start, (void*)NURLY_WORKER_CHECKS);
         }
 
         neb_register_callback(NEBCALLBACK_SERVICE_CHECK_DATA, nurly_module, 0, nurly_callback_service_check);
@@ -49,6 +54,11 @@ int nurly_callback_service_check(int event_type, void* data) {
 
     /* ignore non-initiate service checks */
     if (service_data->type != NEBTYPE_SERVICECHECK_INITIATE) {
+        return NEB_OK;
+    }
+
+    if (!nurly_health) {
+        nurly_log("server unavailable, locally checking %s on host %s", service_data->service_description, service_data->host_name);
         return NEB_OK;
     }
 
