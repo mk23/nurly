@@ -13,9 +13,9 @@ AC_CONFIG_HEADERS(config.h)
 AC_CONFIG_FILES([Makefile src/Makefile])
 
 AC_GNU_SOURCE
-AC_PROG_CC_C99
 AC_TYPE_SIZE_T
 AC_FUNC_MALLOC
+AC_PROG_CC_C99
 
 AC_CHECK_HEADERS([errno.h pthread.h stdio.h stdarg.h stdlib.h string.h unistd.h time.h], [], [exit 1])
 AC_CHECK_HEADERS([curl/curl.h], [], [exit 1])
@@ -27,5 +27,6 @@ AC_CHECK_FUNCS([gettimeofday strdup open_memstream fdopen fprintf asprintf vsnpr
 
 AC_ENABLE_SHARED
 AC_DISABLE_STATIC
+AC_PREFIX_DEFAULT(/usr)
 
 AC_OUTPUT
