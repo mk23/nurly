@@ -52,3 +52,26 @@ The nurly configuration file is rather self-explanatory.
 
     ## number of nagios worker threads
     worker_threads = 10
+
+
+Operation
+---------
+
+The nurly module brokers service checks from Nagios by appending the expanded command-line that Nagios would have otherwise run locally to the url configured and performing the request via libcurl.  This happens in a separate thread, allowing the rest of Nagios to continue operating without waiting for a reply.  The server is expected to perform the requested check and return the output of the check as the body with a specific status code indicating check result.  Nurly recognizes the following HTTP status codes and converts them to proper Nagios result codes:
+
+    HTTP Response    Nagios Result
+    200 OK           0 Success/OK
+    221 Warning      1 Warning
+    222 Critical     2 Critical
+    223 Unknown      3 Unknown
+
+
+Server
+------
+
+An example nurly server exists in the `server` subdirectory.  Its feature set includes:
+
+- multiprocess (multi-core) operation, with customizable number of workers
+- customizable whitelist of allowed plugin directories
+- customizable whitelist of allowed hosts
+- embeddable python plugin execution by importing and calling `main()` saving `fork()/exec()` per check
