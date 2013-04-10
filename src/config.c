@@ -2,8 +2,8 @@
 
 int nurly_config_read(char* cfg_name, nurly_config_t* nurly_config) {
     int       parse_error = FALSE;
-	char*     cfg_key = NULL;
-	char*     cfg_val = NULL;
+    char*     cfg_key = NULL;
+    char*     cfg_val = NULL;
     char*     cfg_line = NULL;
     char*     temp_ptr = NULL;
     mmapfile* cfg_file = NULL;
@@ -91,7 +91,7 @@ int nurly_config_read(char* cfg_name, nurly_config_t* nurly_config) {
     NURLY_FREE(cfg_key);
     NURLY_FREE(cfg_val);
     NURLY_FREE(cfg_line);
-	mmap_fclose(cfg_file);
+    mmap_fclose(cfg_file);
 
     if (nurly_config->checks_url == NULL) {
         nurly_log("error: no checks_url provided, nurly will be disabled.");
