@@ -36,7 +36,7 @@ int nurly_config_read(char* cfg_name, nurly_config_t* nurly_config) {
             nurly_log("warning: invalid configuration on line %2d: %s", cfg_file->current_line, cfg_line);
             continue;
         }
-        if ((cfg_key = (char*)strdup(temp_ptr)) == NULL) {
+        if ((cfg_key = strdup(temp_ptr)) == NULL) {
             nurly_log("error: unable to allocate memory for configuration key");
             parse_error = TRUE;
             break;
@@ -46,7 +46,7 @@ int nurly_config_read(char* cfg_name, nurly_config_t* nurly_config) {
             nurly_log("warning: invalid configuration on line %2d: %s", cfg_file->current_line, cfg_line);
             continue;
         }
-        if ((cfg_val = (char*)strdup(temp_ptr)) == NULL) {
+        if ((cfg_val = strdup(temp_ptr)) == NULL) {
             nurly_log("error: unable to allocate memory for configuration value");
             parse_error = TRUE;
             break;
@@ -56,7 +56,7 @@ int nurly_config_read(char* cfg_name, nurly_config_t* nurly_config) {
         strip(cfg_val);
 
         if (!strcmp(cfg_key, "checks_url")) {
-            if ((nurly_config->checks_url = (char*)strdup(cfg_val)) == NULL) {
+            if ((nurly_config->checks_url = strdup(cfg_val)) == NULL) {
                 nurly_log("error: unable to allocate memory for checks_url value");
                 parse_error = TRUE;
                 break;
@@ -64,7 +64,7 @@ int nurly_config_read(char* cfg_name, nurly_config_t* nurly_config) {
                 nurly_log("set checks url: %s", nurly_config->checks_url);
             }
         } else if (!strcmp(cfg_key, "health_url")) {
-            if ((nurly_config->health_url = (char*)strdup(cfg_val)) == NULL) {
+            if ((nurly_config->health_url = strdup(cfg_val)) == NULL) {
                 nurly_log("error: unable to allocate memory for health_url value");
                 parse_error = TRUE;
                 break;
