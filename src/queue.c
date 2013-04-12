@@ -65,6 +65,18 @@ int nurly_queue_len(nurly_queue_t* queue) {
     return size;
 }
 
+int nurly_queue_has(nurly_queue_t* queue, void* data, int (*search)(void*, void*)) {
+    nurly_queue_item_t* item = NULL;
+
+    while ((item = queue->head) != NULL) {
+        if (search(item->data, data)) {
+            return TRUE;
+        }
+    }
+
+    return FALSE;
+}
+
 void nurly_queue_close(nurly_queue_t* queue) {
     void*               data = NULL;
     nurly_queue_item_t* item = NULL;
