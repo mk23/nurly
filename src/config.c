@@ -1,11 +1,28 @@
 #include "nurly.h"
 
+static void nurly_log_regerror(int err, regex_t* reg, char* pat) {
+    size_t len = regerror(err, reg, NULL, 0);
+    char*  buf = NULL;
+
+    if ((buf = (char*)malloc(len)) == NULL) {
+        nurly_log("error: unable to allocate memory for regerror");
+    } else {
+        regerror(err, reg, buf, len);
+        nurly_log("error: unable to compile pattern for %s: %s", pat, buf);
+    }
+
+    regfree(reg);
+    NURLY_FREE(reg);
+    NURLY_FREE(buf);
+}
+
 int nurly_config_read(char* cfg_name, nurly_config_t* nurly_config) {
     int       parse_error = FALSE;
     char*     cfg_key = NULL;
     char*     cfg_val = NULL;
     char*     cfg_line = NULL;
     char*     temp_ptr = NULL;
+    regex_t*  temp_reg = NULL;
     mmapfile* cfg_file = NULL;
 
     if ((cfg_file = mmap_fopen(cfg_name)) == NULL) {
@@ -83,6 +100,19 @@ int nurly_config_read(char* cfg_name, nurly_config_t* nurly_config) {
                 nurly_config->worker_threads = 20;
             }
             nurly_log("set worker threads: %d", nurly_config->worker_threads);
+        } else if (!strcmp(cfg_key, "skip_host")) {
+            if ((temp_reg = (regex_t*)malloc(sizeof(regex_t))) == NULL) {
+                nurly_log("error: unable to allocate memory for skip_host pattern");
+                parse_error = TRUE;
+                break;
+            }
+            if ((parse_error = regcomp(temp_reg, cfg_val, REG_EXTENDED | REG_NOSUB)) != 0) {
+                nurly_log_regerror(parse_error, temp_reg, cfg_val);
+                parse_error = TRUE;
+                break;
+            }
+            nurly_queue_put(&(nurly_config->skip_hosts), (void*)temp_reg);
+            nurly_log("added skip_host pattern: %s", cfg_val);
         } else {
             nurly_log("warning: unknown configuration key: %s", cfg_key);
         }
@@ -104,4 +134,17 @@ int nurly_config_read(char* cfg_name, nurly_config_t* nurly_config) {
 void nurly_config_free(nurly_config_t* nurly_config) {
     NURLY_FREE(nurly_config->checks_url);
     NURLY_FREE(nurly_config->health_url);
+
+    nurly_config->skip_hosts.purge = nurly_config_free_regex;
+    nurly_queue_close(&(nurly_config->skip_hosts));
+
+    nurly_config->skip_services.purge = nurly_config_free_regex;
+    nurly_queue_close(&(nurly_config->skip_services));
+}
+
+void nurly_config_free_regex(void* data) {
+    if (data) {
+        regfree((regex_t*)data);
+        NURLY_FREE(data);
+    }
 }

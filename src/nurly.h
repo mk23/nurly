@@ -56,6 +56,7 @@ void nurly_log(const char*, ...);
 /* configs */
 int  nurly_config_read(char*, nurly_config_t*);
 void nurly_config_free(nurly_config_t*);
+void nurly_config_free_regex(void*);
 
 /* callbacks */
 int  nurly_callback_process_data(int, void*);
