@@ -57,8 +57,18 @@ int nurly_callback_service_check(int event_type, void* data) {
         return NEB_OK;
     }
 
+    if (nurly_queue_has(&nurly_config.skip_hosts, service_data->host_name, nurly_config_match)) {
+        nurly_log("locally checking %s on %s due to skip_host configuration", service_data->service_description, service_data->host_name);
+        return NEB_OK;
+    }
+
+    if (nurly_queue_has(&nurly_config.skip_services, service_data->service_description, nurly_config_match)) {
+        nurly_log("locally checking %s on %s due to skip_service configuration", service_data->service_description, service_data->host_name);
+        return NEB_OK;
+    }
+
     if (!nurly_health) {
-        nurly_log("server unavailable, locally checking %s on host %s", service_data->service_description, service_data->host_name);
+        nurly_log("locally checking %s on %s due to failed health check", service_data->service_description, service_data->host_name);
         return NEB_OK;
     }
 

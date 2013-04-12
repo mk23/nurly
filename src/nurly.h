@@ -54,6 +54,7 @@ typedef enum nurly_worker {
 void nurly_log(const char*, ...);
 
 /* configs */
+int  nurly_config_match(void*, void*);
 int  nurly_config_read(char*, nurly_config_t*);
 void nurly_config_free(nurly_config_t*);
 void nurly_config_free_regex(void*);
