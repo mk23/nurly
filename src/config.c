@@ -113,6 +113,19 @@ int nurly_config_read(char* cfg_name, nurly_config_t* nurly_config) {
             }
             nurly_queue_put(&(nurly_config->skip_hosts), (void*)temp_reg);
             nurly_log("added skip_host pattern: %s", cfg_val);
+        } else if (!strcmp(cfg_key, "skip_service")) {
+            if ((temp_reg = (regex_t*)malloc(sizeof(regex_t))) == NULL) {
+                nurly_log("error: unable to allocate memory for skip_service pattern");
+                parse_error = TRUE;
+                break;
+            }
+            if ((parse_error = regcomp(temp_reg, cfg_val, REG_EXTENDED | REG_NOSUB)) != 0) {
+                nurly_log_regerror(parse_error, temp_reg, cfg_val);
+                parse_error = TRUE;
+                break;
+            }
+            nurly_queue_put(&(nurly_config->skip_services), (void*)temp_reg);
+            nurly_log("added skip_service pattern: %s", cfg_val);
         } else {
             nurly_log("warning: unknown configuration key: %s", cfg_key);
         }
