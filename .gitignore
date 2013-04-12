@@ -1,4 +1,20 @@
+# vim swap files
 *.sw*
-config.*
+
+# autoconf files
 Makefile
 Makefile.in
+aclocal.m4
+autom4te.cache/
+config.*
+configure
+depcomp
+install-sh
+libtool
+ltmain.sh
+missing
+stamp-h1
+
+# dist files
+nurly-module-*.tar.gz
+nurly-server-*.tar.gz
