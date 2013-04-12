@@ -53,6 +53,13 @@ The nurly configuration file is rather self-explanatory.
     ## number of nagios worker threads
     worker_threads = 10
 
+    ## do not distribute checks for these hosts
+    skip_host = localhost
+    skip_host = special[0-9].*\.com
+
+    ## do not distribute checks for these services
+    skip_service = nagios_config
+    skip_service = ^SSH$
 
 Operation
 ---------
