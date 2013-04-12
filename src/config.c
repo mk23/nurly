@@ -106,7 +106,7 @@ int nurly_config_read(char* cfg_name, nurly_config_t* nurly_config) {
                 parse_error = TRUE;
                 break;
             }
-            if ((parse_error = regcomp(temp_reg, cfg_val, REG_EXTENDED | REG_NOSUB)) != 0) {
+            if ((parse_error = regcomp(temp_reg, cfg_val, REG_EXTENDED | REG_NOSUB | REG_ICASE)) != 0) {
                 nurly_log_regerror(parse_error, temp_reg, cfg_val);
                 parse_error = TRUE;
                 break;
@@ -119,7 +119,7 @@ int nurly_config_read(char* cfg_name, nurly_config_t* nurly_config) {
                 parse_error = TRUE;
                 break;
             }
-            if ((parse_error = regcomp(temp_reg, cfg_val, REG_EXTENDED | REG_NOSUB)) != 0) {
+            if ((parse_error = regcomp(temp_reg, cfg_val, REG_EXTENDED | REG_NOSUB | REG_ICASE)) != 0) {
                 nurly_log_regerror(parse_error, temp_reg, cfg_val);
                 parse_error = TRUE;
                 break;
