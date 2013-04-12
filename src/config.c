@@ -16,6 +16,10 @@ static void nurly_log_regerror(int err, regex_t* reg, char* pat) {
     NURLY_FREE(buf);
 }
 
+int nurly_config_match(void* regex, void* text) {
+    return regexec((regex_t*)regex, (char*)text, 0, NULL, 0) == 0;
+}
+
 int nurly_config_read(char* cfg_name, nurly_config_t* nurly_config) {
     int       parse_error = FALSE;
     char*     cfg_key = NULL;
@@ -153,10 +157,6 @@ void nurly_config_free(nurly_config_t* nurly_config) {
 
     nurly_config->skip_services.purge = nurly_config_free_regex;
     nurly_queue_close(&(nurly_config->skip_services));
-}
-
-int nurly_config_match(void* regex, void* text) {
-    return regexec((regex_t*)regex, (char*)text, 0, NULL, 0) == 0;
 }
 
 void nurly_config_free_regex(void* data) {
