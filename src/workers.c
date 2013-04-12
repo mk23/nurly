@@ -9,7 +9,7 @@ static void nurly_checks_loop(CURL* curl_handle) {
     while (TRUE) {
         result_data = (check_result*)nurly_queue_get(&nurly_queue);
         if (result_data) {
-            nurly_log("checking service '%s' on host '%s' ...", result_data->service_description, result_data->host_name);
+            nurly_log("distributing service %s on %s", result_data->service_description, result_data->host_name);
         } else {
             nurly_log("queue is closed, terminating worker thread");
             break;
