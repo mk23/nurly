@@ -155,6 +155,10 @@ void nurly_config_free(nurly_config_t* nurly_config) {
     nurly_queue_close(&(nurly_config->skip_services));
 }
 
+int nurly_config_match(void* regex, void* text) {
+    return regexec((regex_t*)regex, (char*)text, 0, NULL, 0) == 0;
+}
+
 void nurly_config_free_regex(void* data) {
     if (data) {
         regfree((regex_t*)data);
