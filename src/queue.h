@@ -15,7 +15,7 @@ typedef struct nurly_queue {
     void                (*purge)(void*);
 } nurly_queue_t;
 
-void  nurly_queue_put(nurly_queue_t*, void*);
+int   nurly_queue_put(nurly_queue_t*, void*);
 void* nurly_queue_get(nurly_queue_t*);
 int   nurly_queue_len(nurly_queue_t*);
 int   nurly_queue_has(nurly_queue_t*, void*, int (*)(void*, void*)); // not thread safe
