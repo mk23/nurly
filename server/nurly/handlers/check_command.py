@@ -37,10 +37,10 @@ def check_command(env, res, parent):
         return
     else:
         try:
-            mod = importlib.import_module(os.path.splitext(os.path.basename(cmd[0]))[0])
+            fun = importlib.import_module(os.path.splitext(os.path.basename(cmd[0]))[0]).main
             arg = cmd[1:]
-        except ImportError:
-            mod = check_wrapper(tmp, tmp)
+        except (AttributeError, ImportError):
+            fun = check_wrapper(tmp, tmp).main
             arg = cmd
 
     try:
@@ -49,7 +49,7 @@ def check_command(env, res, parent):
         signal.signal(signal.SIGALRM, handle_timeout)
         signal.alarm(env['nurly.mod_timeout'])
 
-        mod.main(arg)
+        fun(arg)
 
         raise NotImplementedError
     except SystemExit as e:
