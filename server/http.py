@@ -173,21 +173,20 @@ class Handler(BaseHTTPServer.BaseHTTPRequestHandler):
     def do_GET(self):
         self.route_request('GET')
 
-def GET(path):
+def GET(path=None):
     def wrapper(func):
-        if not path.startswith('/') or '?' in path:
-            raise httplib.InvalidURL(path)
-        Handler.request_handlers['GET'][re.compile(path + r'(?:/|$)')] = func
+        patt = r'/%s(?:/|$)' % (path.strip('/') if path is not None else func.func_name.replace('_', '-'))
+        Handler.request_handlers['GET'][re.compile(patt)] = func
     return wrapper
 
-@Handler.GET(r'/test')
-def test(response):
+@GET()
+def test_request(response):
     response.code = 221
     response.line = 'SUCCESS'
     response.body = 'foo'
     response.head['Foo'] = 'fum'
 
-@Handler.GET(r'/foo/(\d{3})/([\w\s]+)')
+@GET(r'/foo/(\d{3})/([\w\s]+)')
 def foo(response, code, line):
     response.code = int(code)
     response.line = line
