@@ -1,6 +1,6 @@
 AC_PREREQ(2.65)
 
-AC_INIT(nurly-module, 1.0.1, max.kalika+projects@gmail.com)
+AC_INIT(nurly-module, 1.1.0, max.kalika+projects@gmail.com)
 AC_USE_SYSTEM_EXTENSIONS
 
 AM_INIT_AUTOMAKE(1.11 no-define foreign)

@@ -1,3 +1,43 @@
+nurly (1.1.0) precise; urgency=low
+
+  * Tagging 1.1.0
+  * [7adc598] Issue #6: Add support for python plugins that don't
+    implement main().
+  * [ef16d7c] Generate the server tarball alongside module tarball when
+    calling 'make dist'
+  * [1b6a0d6] Add docs for skip_host/service config items.
+  * [53236e7] Issue #5: Return error on memory failures when adding to
+    the queue.
+  * [41ec380] Autoconf check for regex header and functions.
+  * [c7a95c8] Log consistency.
+  * [c5de21e] Issue #4: Hook up skip_host/service configuration item to
+    avoid check distribution if requested by operator.
+  * [f26cfb6] Organize functions better.
+  * [61f51fd] Ignore case in skip_host/service patterns.
+  * [932031f] Avoid infinite loop.
+  * [c80dcf2] Add nurly_queue_has() callback to perform regex match.
+  * [0be1269] Add config processor for skip_service setting.
+  * [a40d6b2] Ignore the rest of the autoconf vomit.
+  * [00f8504] New queue function: nurly_queue_has(): searches the queue
+    via callback for every item.
+  * [3e28398] Issue #4: Parse new skip_host and skip_service settings,
+    compile as regex, and add to internal lists.
+  * [3c36b1c] Issue #4: Add skip_hosts and skip_services config members.
+  * [309dfeb] No need to cast return of strdup() as char*.
+  * [98b7590] Whitespace.
+  * [69e91df] More documentation.
+  * [7d063a9] Pass extra flags (i.e. --minor, --major, etc.) to
+    release.py.
+  * [0b7cf61] Add initial readme file.
+  * [f8bd430] Change default prefix to /usr.
+  * [ba97c1e] Update email and url.
+  * [25e6210] Issue #2: Finalize health check system.
+  * [d2965cb] Issue #2: Stub out health check thread.
+  * [95b0046] Fix log grammar.
+  * [517cfbd] Reorganize config management a bit.
+
+ -- Max Kalika <max@topsy.com>  Tue, 23 Apr 2013 08:27:53 -0700
+
 nurly (1.0.1) precise; urgency=low
 
   * Tagging 1.0.1
