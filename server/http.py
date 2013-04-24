@@ -2,6 +2,7 @@
 
 import BaseHTTPServer
 
+import argparse
 import collections
 import multiprocessing
 import os
@@ -218,5 +219,13 @@ def server_status(req, res):
 def server_version(req, res):
     res.body = req.server_version + '\r\n'
 
-server = Server(('', 1123), Handler)
-server.create_server(10)
+parser = argparse.ArgumentParser(description='python http server library')
+parser.add_argument('-p', '--server-port', default=1123, type=int,
+                    help='local listening port')
+parser.add_argument('-n', '--num-workers', default=multiprocessing.cpu_count(), type=int,
+                    help='number of worker processes')
+
+if __name__ == '__main__':
+    args = parser.parse_args()
+
+    Server(('', args.server_port), Handler).create_server(args.num_workers)
