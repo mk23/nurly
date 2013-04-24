@@ -79,6 +79,7 @@ class Worker(multiprocessing.Process):
             return self.channel.recv()
 
     def start_server(self, worker_pipe, unused_pipes):
+        signal.signal(signal.SIGTERM, signal.SIG_DFL)
         signal.signal(signal.SIGCHLD, self.reap_children)
 
         self.channel = worker_pipe
@@ -115,6 +116,8 @@ class Server(BaseHTTPServer.HTTPServer):
         BaseHTTPServer.HTTPServer.server_bind(self)
 
     def create_server(self, workers):
+        signal.signal(signal.SIGTERM, self.clean_workers)
+
         self.worker_state.update(self.create_worker() for i in xrange(workers))
         self.handle_events()
 
@@ -126,6 +129,12 @@ class Server(BaseHTTPServer.HTTPServer):
         worker_pipe.close()
 
         return worker_proc.pid, worker_proc
+
+    def clean_workers(self, *args):
+        for pid in self.worker_state.keys():
+            os.kill(pid, signal.SIGTERM)
+
+        sys.exit(0)
 
     def ch_set_status(self, worker, status):
         worker.status = status
