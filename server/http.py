@@ -22,19 +22,16 @@ STATUS_IDLE, STATUS_BUSY, STATUS_STOP = 'IBS'
 
 class HTTPError(Exception):
     code = 500
-    line = 'Internal Server Error'
-    body = 'internal server error\r\n'
     def __init__(self, exception=None):
+        self.line, self.body = Handler.responses[self.code]
         if exception is not None:
             self.body = ''.join(traceback.format_exception(*exception))
 
+class HTTPForbiddenError(HTTPError):
+    code = 403
+
 class HTTPNotFoundError(HTTPError):
     code = 404
-    line = 'Not Found'
-    body = 'not found\r\n'
-    def __init__(self, item=None):
-        if item is not None:
-            self.body = '%s %s' % (item, self.body)
 
 class Response():
     def __init__(self, **kwargs):
@@ -177,7 +174,7 @@ class Handler(BaseHTTPServer.BaseHTTPRequestHandler):
                     func(self, response, *(find.groups()))
                     break
             else:
-                raise HTTPNotFoundError(self.path)
+                raise HTTPNotFoundError
 
         except Exception as e:
             if not isinstance(e, HTTPError):
