@@ -97,13 +97,14 @@ class Worker(multiprocessing.Process):
 class Server(BaseHTTPServer.HTTPServer):
     allow_reuse_address = True
 
-    def __init__(self, port, addr='', workers=1, allowed=None, version=None):
+    def __init__(self, port, addr='', workers=1, allowed=None, version=None, **kwargs):
         BaseHTTPServer.HTTPServer.__init__(self, (addr, port), Handler)
 
         self.unused_pipes = []
         self.worker_state = {}
         self.ip_whitelist = set(socket.gethostbyname(i) for i in allowed)
 
+        Handler.extra_settings  = kwargs
         Handler.server_version += ' %s/%s' % (os.path.basename(sys.modules[__name__].__file__), VERSION)
         if version is not None:
             Handler.server_version += ' %s' % version
