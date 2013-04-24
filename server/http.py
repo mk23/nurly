@@ -208,18 +208,5 @@ def server_status(req, res):
         status.count(STATUS_BUSY), status.count(STATUS_IDLE), ''.join(status)
     )
 
-@GET()
-def test_request(req, res):
-    res.code = 221
-    res.line = 'SUCCESS'
-    res.body = 'foo'
-    res.head['Foo'] = 'fum'
-
-@GET(r'/foo/(\d{3})/([\w\s]+)')
-def foo(req, res, code, line):
-    res.code = int(code)
-    res.line = line
-    res.body = 'yay\r\n'
-
 server = Server(('', 1123), Handler)
 server.create_server(10)
