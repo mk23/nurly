@@ -103,12 +103,13 @@ class Server(BaseHTTPServer.HTTPServer):
         self.socket.setsockopt(socket.SOL_TCP, socket.TCP_QUICKACK,     True)
         BaseHTTPServer.HTTPServer.server_bind(self)
 
-    def create_server(self, workers=multiprocessing.cpu_count(), version=None):
+    def create_server(self, allowed=[], workers=multiprocessing.cpu_count(), version=None):
         Handler.server_version += ' %s/%s' % (os.path.basename(sys.modules[__name__].__file__), VERSION)
         if version is not None:
             Handler.server_version += ' %s' % version
 
         self.unused_pipes = []
+        self.ip_whitelist = set(socket.gethostbyname(i) for i in allowed)
         self.worker_state = dict(self.create_worker() for i in xrange(workers))
 
         self.handle_events()
@@ -167,6 +168,9 @@ class Handler(BaseHTTPServer.BaseHTTPRequestHandler):
         response = Response(head=self.default_headers)
 
         try:
+            if self.server.ip_whitelist and self.client_address[0] not in self.server.ip_whitelist:
+                raise HTTPForbiddenError
+
             for patt, func in self.request_handlers[method].items():
                 find = patt.match(urllib.unquote(self.nurly_path))
                 if find:
@@ -216,13 +220,15 @@ def server_status(req, res):
 def server_version(req, res):
     res.body = req.server_version + '\r\n'
 
-parser = argparse.ArgumentParser(description='python http server library')
+parser = argparse.ArgumentParser(description='python http server library', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument('-p', '--server-port', default=1123, type=int,
                     help='local listening port')
 parser.add_argument('-n', '--num-workers', default=multiprocessing.cpu_count(), type=int,
+                    help='number of worker processes')
+parser.add_argument('-a', '--allowed-ips', default=[], nargs='+',
                     help='number of worker processes')
 
 if __name__ == '__main__':
     args = parser.parse_args()
 
-    Server(('', args.server_port), Handler).create_server(args.num_workers)
+    Server(('', args.server_port), Handler).create_server(allowed=args.allowed_ips, workers=args.num_workers)
