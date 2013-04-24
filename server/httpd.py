@@ -97,19 +97,19 @@ class Worker(multiprocessing.Process):
 class Server(BaseHTTPServer.HTTPServer):
     allow_reuse_address = True
 
-    def __init__(self, port, addr='', workers=1, allowed=None, version=None, **kwargs):
-        BaseHTTPServer.HTTPServer.__init__(self, (addr, port), Handler)
+    def __init__(self, server_port, server_addr='', num_workers=1, allowed_ips=None, version=None, **kwargs):
+        BaseHTTPServer.HTTPServer.__init__(self, (server_addr, server_port), Handler)
 
         self.unused_pipes = []
         self.worker_state = {}
-        self.ip_whitelist = set(socket.gethostbyname(i) for i in allowed)
+        self.ip_whitelist = set(socket.gethostbyname(i) for i in allowed_ips)
 
         Handler.extra_settings  = kwargs
         Handler.server_version += ' %s/%s' % (os.path.basename(sys.modules[__name__].__file__), VERSION)
         if version is not None:
             Handler.server_version += ' %s' % version
 
-        self.create_server(workers)
+        self.create_server(num_workers)
 
     def server_bind(self):
         self.socket.setsockopt(socket.SOL_TCP, socket.TCP_DEFER_ACCEPT, True)
@@ -235,14 +235,16 @@ def server_version(req, res):
     res.body = req.server_version + '\r\n'
 
 parser = argparse.ArgumentParser(description='python http server library', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+parser.add_argument('-a', '--server-addr', default='',
+                    help='local listening interface')
 parser.add_argument('-p', '--server-port', default=1123, type=int,
                     help='local listening port')
 parser.add_argument('-n', '--num-workers', default=multiprocessing.cpu_count(), type=int,
                     help='number of worker processes')
-parser.add_argument('-a', '--allowed-ips', default=[], nargs='+',
+parser.add_argument('-i', '--allowed-ips', default=[], nargs='+',
                     help='number of worker processes')
 
 if __name__ == '__main__':
     args = parser.parse_args()
 
-    Server(args.server_port, allowed=args.allowed_ips, workers=args.num_workers)
+    Server(**vars(args))
