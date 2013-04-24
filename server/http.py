@@ -3,7 +3,6 @@
 import BaseHTTPServer
 
 import collections
-import httplib
 import multiprocessing
 import os
 import re
@@ -16,8 +15,7 @@ import traceback
 import urllib
 import urlparse
 
-STATUS_IDLE, STATUS_BUSY, STATUS_STOP = range(3)
-STATUS_TYPE = dict((v, k[7:]) for k, v in sys.modules[__name__].__dict__.items() if k.startswith('STATUS'))
+STATUS_IDLE, STATUS_BUSY, STATUS_STOP = 'IBS'
 
 class HTTPError(Exception):
     code = 500
@@ -59,32 +57,43 @@ class Response():
         self.__dict__[key] = val
 
 class Worker(multiprocessing.Process):
-    def __init__(self, server_socket, worker_pipe, parent_pipe, parent_pipes):
-        self.sock = server_socket
-        self.pipe = parent_pipe
-        self.fileno = self.pipe.fileno
+    def __init__(self, server, worker_pipe, parent_pipe, unused_pipes):
+        self.channel = parent_pipe
+        self.server = server
+        self.fileno = self.channel.fileno
 
-        parent_pipes.append(parent_pipe)
+        unused_pipes.append(parent_pipe)
 
-        multiprocessing.Process.__init__(self, target=self.serve_forever, args=(worker_pipe, parent_pipes))
+        multiprocessing.Process.__init__(self, target=self.start_server, args=(worker_pipe, unused_pipes))
         self.start()
 
     def reap_children(self, *args):
         os.waitpid(-1, os.WNOHANG)
 
-    def serve_forever(self, pipe, unused_pipes):
+    def send_channel(self, func, args=[], recv=False):
+        if type(args) not in (list, tuple):
+            args = [args]
+        self.channel.send( (func, args) )
+
+        if recv:
+            return self.channel.recv()
+
+    def start_server(self, worker_pipe, unused_pipes):
         signal.signal(signal.SIGCHLD, self.reap_children)
 
-        self.pipe = pipe
-        self.fileno = self.pipe.fileno
+        self.channel = worker_pipe
+        self.fileno = self.channel.fileno
 
         try:
             for pipe in unused_pipes:
                 pipe.close()
 
-            self.sock.serve_forever(poll_interval=None)
+            self.server.worker = self
+            self.server.serve_forever(poll_interval=None)
         except KeyboardInterrupt:
             return
+
+
 
 class Server(BaseHTTPServer.HTTPServer):
     allow_reuse_address = True
@@ -104,15 +113,23 @@ class Server(BaseHTTPServer.HTTPServer):
         parent_pipe, worker_pipe = multiprocessing.Pipe(duplex=True)
 
         worker_proc = Worker(self, worker_pipe, parent_pipe, self.unused_pipes)
+        worker_proc.status = STATUS_IDLE
         worker_pipe.close()
 
         return worker_proc.pid, worker_proc
+
+    def ch_set_status(self, worker, status):
+        worker.status = status
+
+    def ch_get_status(self, worker):
+        worker.channel.send(list(i.status for i in self.worker_state.values()))
 
     def handle_events(self):
         while True:
             for worker in select.select(self.worker_state.values(), [], [])[0]:
                 try:
-                    pid, func, args = worker.pipe.recv()
+                    func, args = worker.channel.recv()
+                    getattr(self, 'ch_%s' % func, lambda *a: True)(worker, *args)
                 except EOFError:
                     worker.join()
                     del self.worker_state[worker.pid]
@@ -137,6 +154,8 @@ class Handler(BaseHTTPServer.BaseHTTPRequestHandler):
     def route_request(self, method):
         self.start_time  = time.time() * 1000
 
+        self.server.worker.send_channel('set_status', STATUS_BUSY)
+
         self.nurly_url   = urlparse.urlparse(self.path)
         self.nurly_path  = urllib.unquote(self.nurly_url.path)
         self.nurly_query = urlparse.parse_qs(self.nurly_url.query)
@@ -148,7 +167,7 @@ class Handler(BaseHTTPServer.BaseHTTPRequestHandler):
                 find = patt.match(urllib.unquote(self.nurly_path))
                 if find:
                     response = Response(head=self.default_headers)
-                    func(response, *(find.groups()))
+                    func(self, response, *(find.groups()))
                     break
             else:
                 raise HTTPNotFoundError(self.path)
@@ -170,6 +189,8 @@ class Handler(BaseHTTPServer.BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(response.body)
 
+        self.server.worker.send_channel('set_status', STATUS_IDLE)
+
     def do_GET(self):
         self.route_request('GET')
 
@@ -179,18 +200,26 @@ def GET(path=None):
         Handler.request_handlers['GET'][re.compile(patt)] = func
     return wrapper
 
+
 @GET()
-def test_request(response):
-    response.code = 221
-    response.line = 'SUCCESS'
-    response.body = 'foo'
-    response.head['Foo'] = 'fum'
+def server_status(req, res):
+    status = req.server.worker.send_channel('get_status', recv=True)
+    res.body = 'Busy Workers: %d\nIdle Workers: %d\nScoreboard:   %s\n' % (
+        status.count(STATUS_BUSY), status.count(STATUS_IDLE), ''.join(status)
+    )
+
+@GET()
+def test_request(req, res):
+    res.code = 221
+    res.line = 'SUCCESS'
+    res.body = 'foo'
+    res.head['Foo'] = 'fum'
 
 @GET(r'/foo/(\d{3})/([\w\s]+)')
-def foo(response, code, line):
-    response.code = int(code)
-    response.line = line
-    response.body = 'yay\r\n'
+def foo(req, res, code, line):
+    res.code = int(code)
+    res.line = line
+    res.body = 'yay\r\n'
 
 server = Server(('', 1123), Handler)
 server.create_server(10)
