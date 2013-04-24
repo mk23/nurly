@@ -15,6 +15,8 @@ import traceback
 import urllib
 import urlparse
 
+from version import VERSION
+
 STATUS_IDLE, STATUS_BUSY, STATUS_STOP = 'IBS'
 
 class HTTPError(Exception):
@@ -103,7 +105,11 @@ class Server(BaseHTTPServer.HTTPServer):
         self.socket.setsockopt(socket.SOL_TCP, socket.TCP_QUICKACK,     True)
         BaseHTTPServer.HTTPServer.server_bind(self)
 
-    def create_server(self, workers=multiprocessing.cpu_count()):
+    def create_server(self, workers=multiprocessing.cpu_count(), version=None):
+        Handler.server_version += ' %s/%s' % (os.path.basename(sys.modules[__name__].__file__), VERSION)
+        if version is not None:
+            Handler.server_version += ' %s' % version
+
         self.unused_pipes = []
         self.worker_state = dict(self.create_worker() for i in xrange(workers))
 
@@ -207,6 +213,10 @@ def server_status(req, res):
     res.body = 'Busy Workers: %d\nIdle Workers: %d\nScoreboard:   %s\n' % (
         status.count(STATUS_BUSY), status.count(STATUS_IDLE), ''.join(status)
     )
+
+@GET()
+def server_version(req, res):
+    res.body = req.server_version + '\r\n'
 
 server = Server(('', 1123), Handler)
 server.create_server(10)
