@@ -104,7 +104,7 @@ class Server(BaseHTTPServer.HTTPServer):
         self.worker_state = {}
         self.ip_whitelist = set(socket.gethostbyname(i) for i in allowed_ips)
 
-        Handler.extra_settings  = kwargs
+        Handler.extra_settings  = collections.namedtuple('extra_settings', kwargs.keys())(*kwargs.values())
         Handler.server_version += ' %s/%s' % (os.path.basename(sys.modules[__name__].__file__), VERSION)
         if version is not None:
             Handler.server_version += ' %s' % version
