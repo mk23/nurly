@@ -93,25 +93,29 @@ class Worker(multiprocessing.Process):
         except KeyboardInterrupt:
             return
 
-
-
 class Server(BaseHTTPServer.HTTPServer):
     allow_reuse_address = True
+
+    def __init__(self, port, addr='', workers=1, allowed=None, version=None):
+        BaseHTTPServer.HTTPServer.__init__(self, (addr, port), Handler)
+
+        self.unused_pipes = []
+        self.worker_state = {}
+        self.ip_whitelist = set(socket.gethostbyname(i) for i in allowed)
+
+        Handler.server_version += ' %s/%s' % (os.path.basename(sys.modules[__name__].__file__), VERSION)
+        if version is not None:
+            Handler.server_version += ' %s' % version
+
+        self.create_server(workers)
 
     def server_bind(self):
         self.socket.setsockopt(socket.SOL_TCP, socket.TCP_DEFER_ACCEPT, True)
         self.socket.setsockopt(socket.SOL_TCP, socket.TCP_QUICKACK,     True)
         BaseHTTPServer.HTTPServer.server_bind(self)
 
-    def create_server(self, allowed=[], workers=multiprocessing.cpu_count(), version=None):
-        Handler.server_version += ' %s/%s' % (os.path.basename(sys.modules[__name__].__file__), VERSION)
-        if version is not None:
-            Handler.server_version += ' %s' % version
-
-        self.unused_pipes = []
-        self.ip_whitelist = set(socket.gethostbyname(i) for i in allowed)
-        self.worker_state = dict(self.create_worker() for i in xrange(workers))
-
+    def create_server(self, workers):
+        self.worker_state.update(self.create_worker() for i in xrange(workers))
         self.handle_events()
 
     def create_worker(self):
@@ -231,4 +235,4 @@ parser.add_argument('-a', '--allowed-ips', default=[], nargs='+',
 if __name__ == '__main__':
     args = parser.parse_args()
 
-    Server(('', args.server_port), Handler).create_server(allowed=args.allowed_ips, workers=args.num_workers)
+    Server(args.server_port, allowed=args.allowed_ips, workers=args.num_workers)
