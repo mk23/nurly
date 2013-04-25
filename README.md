@@ -52,7 +52,7 @@ The nurly configuration file is rather self-explanatory.
     checks_url = http://localhost:2323/check-command/
 
     ## url for backend health check
-    health_url = http://localhost:2323/nurly-version
+    health_url = http://localhost:2323/server-version
 
     ## health check interval in seconds
     health_interval = 5
@@ -89,3 +89,34 @@ An example nurly server exists in the `server` subdirectory.  Its feature set in
 - customizable whitelist of allowed plugin directories
 - customizable whitelist of allowed hosts
 - embeddable python plugin execution by importing and calling `main()` saving `fork()/exec()` per check
+
+The Nurly server is fully configurable via command-line parameters:
+
+    $ server/nurly.py --help
+    usage: nurly.py [-h] [-a SERVER_ADDR] [-p SERVER_PORT] [-n NUM_WORKERS]
+                    [-i ALLOWED_IPS [ALLOWED_IPS ...]]
+                    [-l PLUGIN_PATH [PLUGIN_PATH ...]] [-t MOD_TIMEOUT]
+
+    nagios service check handler
+
+    optional arguments:
+      -h, --help            show this help message and exit
+      -a SERVER_ADDR, --server-addr SERVER_ADDR
+                            local listening interface (default: )
+      -p SERVER_PORT, --server-port SERVER_PORT
+                            local listening port (default: 1123)
+      -n NUM_WORKERS, --num-workers NUM_WORKERS
+                            number of worker processes (default: 2)
+      -i ALLOWED_IPS [ALLOWED_IPS ...], --allowed-ips ALLOWED_IPS [ALLOWED_IPS ...]
+                            number of worker processes (default: [])
+      -l PLUGIN_PATH [PLUGIN_PATH ...], --plugin-path PLUGIN_PATH [PLUGIN_PATH ...]
+                            path to plugin directory (default:
+                            ['/usr/lib/nagios/plugins'])
+      -t MOD_TIMEOUT, --mod-timeout MOD_TIMEOUT
+                            module execution timeout (default: 10)
+
+
+License
+-------
+
+TBD
