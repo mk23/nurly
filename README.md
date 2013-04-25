@@ -4,6 +4,13 @@ NURLY
 Nurly is a Nagios Event Broker module that allows service checks to be distributed via libcurl to any compliant http server.  The backend server receiving service check requests is responsible for executing the requested plugin, returning a properly mapped HTTP response code and the output.
 
 
+Downloading
+-----------
+
+Latest module source: [nurly-module-1.1.0.tar.gz](http://d2g50xfw6d567v.cloudfront.net/mk23/nurly/nurly-module-1.1.0.tar.gz)
+Latest server source: [nurly-server-1.1.0.tar.gz](http://d2g50xfw6d567v.cloudfront.net/mk23/nurly/nurly-server-1.1.0.tar.gz)
+
+
 Compiling
 ---------
 
