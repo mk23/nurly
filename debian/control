@@ -4,7 +4,7 @@ Priority: extra
 Maintainer: Max Kalika <max@topsy.com>
 Build-Depends: debhelper (>= 7), dh-autoreconf, python (>= 2.7), libcurl3-dev
 Standards-Version: 3.8.3
-X-Python-Version: 2.7
+XS-Python-Version: 2.7
 
 Package: nurly-module
 Architecture: amd64
