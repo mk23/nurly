@@ -108,7 +108,8 @@ The Nurly server is fully configurable via command-line parameters:
       -n NUM_WORKERS, --num-workers NUM_WORKERS
                             number of worker processes (default: 2)
       -i ALLOWED_IPS [ALLOWED_IPS ...], --allowed-ips ALLOWED_IPS [ALLOWED_IPS ...]
-                            number of worker processes (default: [])
+                            allowed host whitelist, permits all when empty
+                            (default: [])
       -l PLUGIN_PATH [PLUGIN_PATH ...], --plugin-path PLUGIN_PATH [PLUGIN_PATH ...]
                             path to plugin directory (default:
                             ['/usr/lib/nagios/plugins'])
