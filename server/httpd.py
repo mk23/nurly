@@ -242,7 +242,7 @@ parser.add_argument('-p', '--server-port', default=1123, type=int,
 parser.add_argument('-n', '--num-workers', default=multiprocessing.cpu_count(), type=int,
                     help='number of worker processes')
 parser.add_argument('-i', '--allowed-ips', default=[], nargs='+',
-                    help='number of worker processes')
+                    help='allowed host whitelist, permits all when empty')
 
 if __name__ == '__main__':
     args = parser.parse_args()
