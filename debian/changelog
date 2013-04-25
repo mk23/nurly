@@ -1,3 +1,11 @@
+nurly (1.2.2) precise; urgency=low
+
+  * Tagging 1.2.2
+  * [8834375] Fix python version in debian control.
+  * [800e882] Fix server usage in the doc too.
+
+ -- Max Kalika <max@topsy.com>  Thu, 25 Apr 2013 09:21:14 -0700
+
 nurly (1.2.1) precise; urgency=low
 
   * Tagging 1.2.1

@@ -7,8 +7,8 @@ Nurly is a Nagios Event Broker module that allows service checks to be distribut
 Downloading
 -----------
 
-- Latest module source: [nurly-module-1.2.1.tar.gz](http://d2g50xfw6d567v.cloudfront.net/mk23/nurly/nurly-module-1.2.1.tar.gz)
-- Latest server source: [nurly-server-1.2.1.tar.gz](http://d2g50xfw6d567v.cloudfront.net/mk23/nurly/nurly-server-1.2.1.tar.gz)
+- Latest module source: [nurly-module-1.2.2.tar.gz](http://d2g50xfw6d567v.cloudfront.net/mk23/nurly/nurly-module-1.2.2.tar.gz)
+- Latest server source: [nurly-server-1.2.2.tar.gz](http://d2g50xfw6d567v.cloudfront.net/mk23/nurly/nurly-server-1.2.2.tar.gz)
 
 
 Compiling
