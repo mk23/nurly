@@ -1,3 +1,36 @@
+nurly (1.2.0) precise; urgency=low
+
+  * Tagging 1.2.0
+  * [60a92e4] Update links in docs when cutting a release.
+  * [18b8fd5] Format the links a bit better in the docs.
+  * [9425fbb] Update docs to the latest nurly server code.
+  * [62fb461] Add links to downloadable source in the docs.
+  * [a127434] Issue #7: Update setup.py to new package layout.
+  * [c94b3cd] Move version directly into httpd.py.
+  * [71d8008] Issue #7: Purge the old wsgi-based server code.
+  * [1826765] Issue #7: Convert nurly server to an httpd module.
+  * [35f0d84] Issue #7: Make the extra settings attribute a named tuple
+    for easier access and immutability.
+  * [2b78fc5] Issue #7: Simplify server creation with command-line args
+    auto expansion.
+  * [a544389] Issue #7: Propegate arbitrary external configuration to
+    the handler.
+  * [bb0a3cd] Issue #7: Better module name.
+  * [f9b64a1] Clean up children on SIGTERM.
+  * [1967157] Simplify construction and server start.
+  * [d1288ae] Add ip whitelist support.
+  * [297ecd7] Simplify http error exceptions.
+  * [4b7ac47] Add start of command-line args for the library to be used
+    as a parent parser for importers.
+  * [a77b032] Add server version request handler.
+  * [140c303] Get rid of test request handlers.
+  * [c5b2715] Add scoreboard support to the http library.
+  * [e5d5378] Simplify decorator for plain path request handlers by
+    using the function name.
+  * [5c97c69] Issue #7: Start on a simplified server library.
+
+ -- Max Kalika <max@topsy.com>  Wed, 24 Apr 2013 23:10:34 -0700
+
 nurly (1.1.0) precise; urgency=low
 
   * Tagging 1.1.0
