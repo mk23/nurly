@@ -1,3 +1,10 @@
+nurly (1.2.1) precise; urgency=low
+
+  * Tagging 1.2.1
+  * [3f6ceae] Fix help text for --allowed-ips in httpd.py.
+
+ -- Max Kalika <max@topsy.com>  Wed, 24 Apr 2013 23:39:45 -0700
+
 nurly (1.2.0) precise; urgency=low
 
   * Tagging 1.2.0
