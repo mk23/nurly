@@ -186,7 +186,7 @@ class Handler(BaseHTTPServer.BaseHTTPRequestHandler):
                 raise HTTPForbiddenError
 
             for patt, func in self.request_handlers[method].items():
-                find = patt.match(urllib.unquote(self.nurly_path))
+                find = patt.match(self.nurly_path)
                 if find:
                     response = Response(head=self.default_headers)
                     func(self, response, *(find.groups()))
