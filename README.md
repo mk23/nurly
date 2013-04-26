@@ -58,7 +58,10 @@ The nurly configuration file is rather self-explanatory.
     health_interval = 5
 
     ## number of nagios worker threads
-    worker_threads = 10
+    worker_threads = 20
+
+    ## seconds before curl gives up and check results in UNKNOWN
+    http_timeout = 10
 
     ## do not distribute checks for these hosts
     skip_host = localhost

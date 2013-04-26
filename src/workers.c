@@ -39,7 +39,7 @@ void* nurly_worker_start(void* data) {
     curl_handle = curl_easy_init();
     curl_easy_setopt(curl_handle, CURLOPT_NOPROGRESS, (long)1);
     curl_easy_setopt(curl_handle, CURLOPT_NOSIGNAL,   (long)1);
-    curl_easy_setopt(curl_handle, CURLOPT_TIMEOUT,    (long)10);
+    curl_easy_setopt(curl_handle, CURLOPT_TIMEOUT,    nurly_config.http_timeout);
 
     if (worker_type == NURLY_WORKER_CHECKS) {
         nurly_log("starting checks thread");

@@ -104,6 +104,12 @@ int nurly_config_read(char* cfg_name, nurly_config_t* nurly_config) {
                 nurly_config->worker_threads = 20;
             }
             nurly_log("set worker threads: %d", nurly_config->worker_threads);
+        } else if (!strcmp(cfg_key, "http_timeout")) {
+            if ((nurly_config->worker_threads = atol(cfg_val)) == 0) {
+                nurly_log("warning: invalid http_timeout value");
+                nurly_config->http_timeout = 10;
+            }
+            nurly_log("set http timeout: %d", nurly_config->http_timeout);
         } else if (!strcmp(cfg_key, "skip_host")) {
             if ((temp_reg = (regex_t*)malloc(sizeof(regex_t))) == NULL) {
                 nurly_log("error: unable to allocate memory for skip_host pattern");

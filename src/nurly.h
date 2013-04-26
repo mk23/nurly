@@ -32,7 +32,7 @@
 #define NURLY_TIMEDIFF(a,b) \
     (NURLY_TIMESTAMP(a) - NURLY_TIMESTAMP(b))
 
-#define NURLY_CONFIG_INITIALIZER { NULL, NULL, 2, 20, NURLY_QUEUE_INITIALIZER, NURLY_QUEUE_INITIALIZER }
+#define NURLY_CONFIG_INITIALIZER { NULL, NULL, 2, 20, 10, NURLY_QUEUE_INITIALIZER, NURLY_QUEUE_INITIALIZER }
 
 typedef struct timeval timeval_t;
 
@@ -41,6 +41,7 @@ typedef struct nurly_config {
     char*         health_url;
     int           health_interval;
     int           worker_threads;
+    long          http_timeout;
     nurly_queue_t skip_hosts;
     nurly_queue_t skip_services;
 } nurly_config_t;
