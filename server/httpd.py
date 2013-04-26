@@ -97,12 +97,15 @@ class Worker(multiprocessing.Process):
 class Server(BaseHTTPServer.HTTPServer):
     allow_reuse_address = True
 
-    def __init__(self, server_port, server_addr='', num_workers=1, allowed_ips=None, version=None, **kwargs):
+    def __init__(self, server_port, server_addr='', num_workers=1, allowed_ips=None, disable_log=False, version=None, **kwargs):
         BaseHTTPServer.HTTPServer.__init__(self, (server_addr, server_port), Handler)
 
         self.unused_pipes = []
         self.worker_state = {}
         self.ip_whitelist = set(socket.gethostbyname(i) for i in allowed_ips)
+
+        if disable_log:
+            Handler.log_message = lambda *args: True
 
         Handler.extra_settings  = collections.namedtuple('extra_settings', kwargs.keys())(*kwargs.values())
         Handler.server_version += ' %s/%s' % (os.path.basename(sys.modules[__name__].__file__), VERSION)
@@ -243,6 +246,8 @@ parser.add_argument('-n', '--num-workers', default=multiprocessing.cpu_count(), 
                     help='number of worker processes')
 parser.add_argument('-i', '--allowed-ips', default=[], nargs='+',
                     help='allowed host whitelist, permits all when empty')
+parser.add_argument('-q', '--disable-log', default=False, action='store_true',
+                    help='disable access logs')
 
 if __name__ == '__main__':
     args = parser.parse_args()
