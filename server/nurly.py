@@ -17,7 +17,6 @@ class check_wrapper:
         self.stderr = stderr
 
     def main(self, argv):
-        signal.signal(signal.SIGCHLD, signal.SIG_DFL)
         sys.exit(subprocess.call(argv, stdout=self.stdout, stderr=self.stderr))
 
 def handle_timeout(*args):
@@ -53,6 +52,8 @@ def check_command(req, res, cmd):
     try:
         sys.stdout = sys.stderr = tmp
 
+        handler = signal.getsignal(signal.SIGCHLD)
+        signal.signal(signal.SIGCHLD, signal.SIG_DFL)
         signal.signal(signal.SIGALRM, handle_timeout)
         signal.alarm(req.extra_settings.mod_timeout)
 
@@ -68,10 +69,11 @@ def check_command(req, res, cmd):
     else:
         res.code, res.line = results[3]
         print '%s: improperly returned' % cmd[0]
-
-    signal.alarm(0)
-    sys.stdout = out
-    sys.stderr = err
+    finally:
+        signal.signal(signal.SIGCHLD, handler)
+        signal.alarm(0)
+        sys.stdout = out
+        sys.stderr = err
 
     tmp.seek(0)
     res.body = tmp.read()
