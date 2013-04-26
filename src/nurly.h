@@ -52,7 +52,7 @@ typedef enum nurly_worker {
 } nurly_worker_t;
 
 /* utility */
-void nurly_log(const char*, ...);
+void nurly_log(int, const char*, ...);
 
 /* configs */
 int  nurly_config_match(void*, void*);

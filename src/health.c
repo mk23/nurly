@@ -13,32 +13,32 @@ void nurly_check_health(CURL* curl_handle) {
 
     do {
         if (nurly_config.health_url == NULL) {
-            nurly_log("health_url is disabled by configuration, service checks will be unconditionally distributed");
+            nurly_log(NSLOG_CONFIG_WARNING, "warning: health_url is disabled by configuration, service checks will be unconditionally distributed");
             http_code = 200;
             break;
         }
         if ((reply_obj = open_memstream(&reply_txt, &reply_len)) == NULL) {
-            nurly_log("error: unable to create memstream object");
+            nurly_log(NSLOG_RUNTIME_ERROR, "error: unable to create memstream object");
             break;
         }
         if (curl_easy_setopt(curl_handle, CURLOPT_ERRORBUFFER, curl_error) != CURLE_OK) {
-            nurly_log("error: unable to set CURLOPT_ERRORBUFFER");
+            nurly_log(NSLOG_RUNTIME_ERROR, "error: unable to set CURLOPT_ERRORBUFFER");
             break;
         }
         if (curl_easy_setopt(curl_handle, CURLOPT_URL, nurly_config.health_url) != CURLE_OK) {
-            nurly_log("error: unable to set CURLOPT_URL: %s", curl_error);
+            nurly_log(NSLOG_RUNTIME_ERROR, "error: unable to set CURLOPT_URL: %s", curl_error);
             break;
         }
         if (curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, reply_obj) != CURLE_OK) {
-            nurly_log("error: unable to set CURLOPT_WRITEDATA: %s", curl_error);
+            nurly_log(NSLOG_RUNTIME_ERROR, "error: unable to set CURLOPT_WRITEDATA: %s", curl_error);
             break;
         }
         if (curl_easy_perform(curl_handle) != CURLE_OK) {
-            nurly_log("error: unable to perform curl: %s", curl_error);
+            nurly_log(NSLOG_RUNTIME_ERROR, "error: unable to perform curl: %s", curl_error);
             break;
         }
         if (curl_easy_getinfo(curl_handle, CURLINFO_RESPONSE_CODE, &http_code) != CURLE_OK) {
-            nurly_log("error: unable to get CURLINFO_RESPONSE_CODE: %s", curl_error);
+            nurly_log(NSLOG_RUNTIME_ERROR, "error: unable to get CURLINFO_RESPONSE_CODE: %s", curl_error);
             break;
         }
     } while (FALSE);
@@ -47,9 +47,9 @@ void nurly_check_health(CURL* curl_handle) {
     NURLY_CLOSE(reply_obj);
 
     if (http_code != 200 && nurly_health == TRUE) {
-        nurly_log("health check failed, disabling service check distribution");
+        nurly_log(NSLOG_PROCESS_INFO, "health check failed, disabling service check distribution");
     } else if (http_code == 200 && nurly_health == FALSE) {
-        nurly_log("health check passed, enabling service check distribution");
+        nurly_log(NSLOG_PROCESS_INFO, "health check passed, enabling service check distribution");
     }
 
     nurly_health = http_code == 200;

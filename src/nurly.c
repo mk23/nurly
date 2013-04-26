@@ -19,16 +19,16 @@ int nebmodule_init(int flags, char* args, nebmodule* handle) {
     nurly_module = handle;
 
     if (!(event_broker_options & BROKER_PROGRAM_STATE)) {
-        nurly_log("need BROKER_PROGRAM_STATE (%i or -1) in event_broker_options enabled to work", BROKER_PROGRAM_STATE);
+        nurly_log(NSLOG_CONFIG_ERROR, "need BROKER_PROGRAM_STATE (%i or -1) in event_broker_options enabled to work", BROKER_PROGRAM_STATE);
         return NEB_ERROR;
     }
     if (!(event_broker_options & BROKER_SERVICE_CHECKS)) {
-        nurly_log("need BROKER_SERVICE_CHECKS (%i or -1) in event_broker_options enabled to work", BROKER_SERVICE_CHECKS);
+        nurly_log(NSLOG_CONFIG_ERROR, "need BROKER_SERVICE_CHECKS (%i or -1) in event_broker_options enabled to work", BROKER_SERVICE_CHECKS);
         return NEB_ERROR;
     }
 
     if (nurly_config_read(args, &nurly_config) == OK) {
-        nurly_log("starting nurly via %s", nurly_config.checks_url);
+        nurly_log(NSLOG_PROCESS_INFO, "starting nurly via %s", nurly_config.checks_url);
     } else {
         return NEB_ERROR;
     }
@@ -61,7 +61,7 @@ int nebmodule_deinit(int flags, int reason) {
     return NEB_OK;
 }
 
-void nurly_log(const char* text, ...) {
+void nurly_log(int data_type, const char* text, ...) {
     va_list args;
     char line[1024] = "nurly: ";
 
@@ -69,5 +69,5 @@ void nurly_log(const char* text, ...) {
     vsnprintf(line + 7, sizeof(line) - 7, text, args);
     va_end(args);
 
-    write_to_all_logs(line, NSLOG_INFO_MESSAGE);
+    write_to_log(line, data_type, NULL);
 }

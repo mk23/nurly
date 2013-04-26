@@ -4,13 +4,13 @@ int nurly_queue_put(nurly_queue_t* queue, void* data) {
     nurly_queue_item_t* item = NULL;
 
     if (queue == NULL || (!(queue->head == NULL && queue->tail == NULL) && (queue->head == NULL || queue->tail == NULL))) {
-        nurly_log("error: queue is not initialized");
+        nurly_log(NSLOG_RUNTIME_ERROR, "error: queue is not initialized");
         return ERROR;
     }
 
     item = (nurly_queue_item_t*)malloc(sizeof(nurly_queue_item_t));
     if (item == NULL) {
-        nurly_log("error: unable to allocate memory for queue item");
+        nurly_log(NSLOG_RUNTIME_ERROR, "error: unable to allocate memory for queue item");
         return ERROR;
     }
 
@@ -36,7 +36,7 @@ void* nurly_queue_get(nurly_queue_t* queue) {
     nurly_queue_item_t* item = NULL;
 
     if (queue == NULL || (!(queue->head == NULL && queue->tail == NULL) && (queue->head == NULL || queue->tail == NULL))) {
-        nurly_log("error: queue is not initialized");
+        nurly_log(NSLOG_RUNTIME_ERROR, "error: queue is not initialized");
         return NULL;
     }
 

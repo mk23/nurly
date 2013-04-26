@@ -14,7 +14,7 @@ int nurly_callback_process_data(int event_type, void* data) {
 
     process_data = (nebstruct_process_data*)data;
     if (process_data == NULL) {
-        nurly_log("error: received invalid process data");
+        nurly_log(NSLOG_VERIFICATION_ERROR, "error: received invalid process data");
         return NEB_ERROR;
     }
 
@@ -23,10 +23,10 @@ int nurly_callback_process_data(int event_type, void* data) {
         nurly_queue.purge = nurly_callback_free_result;
 
         if ((check_threads = (pthread_t*)malloc(sizeof(pthread_t) * nurly_config.worker_threads)) == NULL) {
-            nurly_log("error: unable to allocate memory for worker threads");
+            nurly_log(NSLOG_RUNTIME_ERROR, "error: unable to allocate memory for worker threads");
             return NEB_ERROR;
         } else {
-            nurly_log("allocated %d worker threads", nurly_config.worker_threads);
+            nurly_log(NSLOG_PROCESS_INFO, "allocated %d worker threads", nurly_config.worker_threads);
         }
 
         pthread_create(&health_thread, NULL, nurly_worker_start, (void*)NURLY_WORKER_HEALTH);
@@ -37,7 +37,7 @@ int nurly_callback_process_data(int event_type, void* data) {
 
         neb_register_callback(NEBCALLBACK_SERVICE_CHECK_DATA, nurly_module, 0, nurly_callback_service_check);
 
-        nurly_log("initialization complete, version: %s", NURLY_VERSION);
+        nurly_log(NSLOG_PROCESS_INFO, "initialization complete, version: %s", NURLY_VERSION);
     }
 
     return NEB_OK;
@@ -48,7 +48,7 @@ int nurly_callback_service_check(int event_type, void* data) {
     nebstruct_service_check_data* service_data;
 
     if ((service_data = (nebstruct_service_check_data*)data) == NULL) {
-        nurly_log("error: received invalid service data");
+        nurly_log(NSLOG_VERIFICATION_ERROR, "error: received invalid service data");
         return NEB_ERROR;
     }
 
@@ -58,49 +58,49 @@ int nurly_callback_service_check(int event_type, void* data) {
     }
 
     if (nurly_queue_has(&nurly_config.skip_hosts, service_data->host_name, nurly_config_match)) {
-        nurly_log("locally checking %s on %s due to skip_host configuration", service_data->service_description, service_data->host_name);
+        log_debug_info(DEBUGL_CHECKS, DEBUGV_BASIC, "locally checking %s on %s due to skip_host configuration", service_data->service_description, service_data->host_name);
         return NEB_OK;
     }
 
     if (nurly_queue_has(&nurly_config.skip_services, service_data->service_description, nurly_config_match)) {
-        nurly_log("locally checking %s on %s due to skip_service configuration", service_data->service_description, service_data->host_name);
+        log_debug_info(DEBUGL_CHECKS, DEBUGV_BASIC, "locally checking %s on %s due to skip_service configuration", service_data->service_description, service_data->host_name);
         return NEB_OK;
     }
 
     if (!nurly_health) {
-        nurly_log("locally checking %s on %s due to failed health check", service_data->service_description, service_data->host_name);
+        log_debug_info(DEBUGL_CHECKS, DEBUGV_BASIC, "locally checking %s on %s due to failed health check", service_data->service_description, service_data->host_name);
         return NEB_OK;
     }
 
     do {
         if ((result_data = (check_result*)malloc(sizeof(check_result))) == NULL) {
-            nurly_log("error: unable to allocate memory for check result item");
+            nurly_log(NSLOG_RUNTIME_ERROR, "error: unable to allocate memory for check result item");
             break;
         } else {
             init_check_result(result_data);
         }
 
         if ((result_data->host_name = strdup(service_data->host_name)) == NULL) {
-            nurly_log("error: unable to allocate memory for host string");
+            nurly_log(NSLOG_RUNTIME_ERROR, "error: unable to allocate memory for host string");
             break;
         }
         if ((result_data->service_description = strdup(service_data->service_description)) == NULL) {
-            nurly_log("error: unable to allocate memory for service string");
+            nurly_log(NSLOG_RUNTIME_ERROR, "error: unable to allocate memory for service string");
             break;
         }
 
         /* intentional hack: hijacking an unused pointer slot for the command line */
         if ((result_data->next = (check_result*)strdup(service_data->command_line)) == NULL) {
-            nurly_log("error: unable to allocate memory for command string");
+            nurly_log(NSLOG_RUNTIME_ERROR, "error: unable to allocate memory for command string");
             break;
         }
 
         if (asprintf(&(result_data->output_file), "%s/checkXXXXXX", temp_path) == -1) {
-            nurly_log("error: unable to allocate memory for check file name");
+            nurly_log(NSLOG_RUNTIME_ERROR, "error: unable to allocate memory for check file name");
             break;
         }
         if ((result_data->output_file_fd = mkstemp(result_data->output_file)) == -1) {
-            nurly_log("error: unable to create check output file");
+            nurly_log(NSLOG_RUNTIME_ERROR, "error: unable to create check output file");
             break;
         } else {
             result_data->output_file_fp = fdopen(result_data->output_file_fd, "w");

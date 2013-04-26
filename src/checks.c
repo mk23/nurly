@@ -16,42 +16,42 @@ static void nurly_check_curl_output(check_result* result_data, CURL* curl_handle
 
     do {
         if ((reply_obj = open_memstream(&reply_txt, &reply_len)) == NULL) {
-            nurly_log("error: unable to create memstream object");
+            nurly_log(NSLOG_RUNTIME_ERROR, "error: unable to create memstream object");
             NURLY_RESULT_UNKNOWN(result_data);
             break;
         }
         if ((query_uri = curl_easy_escape(curl_handle, (char*)result_data->next, 0)) == NULL) {
-            nurly_log("error: unable to allocate memory for escaped command line");
+            nurly_log(NSLOG_RUNTIME_ERROR, "error: unable to allocate memory for escaped command line");
             NURLY_RESULT_UNKNOWN(result_data);
             break;
         }
         if (asprintf(&(query_url), "%s%s", nurly_config.checks_url, query_uri) == -1) {
-            nurly_log("error: unable to allocate memory for full command url");
+            nurly_log(NSLOG_RUNTIME_ERROR, "error: unable to allocate memory for full command url");
             NURLY_RESULT_UNKNOWN(result_data);
             break;
         }
         if (curl_easy_setopt(curl_handle, CURLOPT_ERRORBUFFER, curl_error) != CURLE_OK) {
-            nurly_log("error: unable to set CURLOPT_ERRORBUFFER");
+            nurly_log(NSLOG_RUNTIME_ERROR, "error: unable to set CURLOPT_ERRORBUFFER");
             NURLY_RESULT_UNKNOWN(result_data);
             break;
         }
         if (curl_easy_setopt(curl_handle, CURLOPT_URL, query_url) != CURLE_OK) {
-            nurly_log("error: unable to set CURLOPT_URL: %s", curl_error);
+            nurly_log(NSLOG_RUNTIME_ERROR, "error: unable to set CURLOPT_URL: %s", curl_error);
             NURLY_RESULT_UNKNOWN(result_data);
             break;
         }
         if (curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, reply_obj) != CURLE_OK) {
-            nurly_log("error: unable to set CURLOPT_WRITEDATA: %s", curl_error);
+            nurly_log(NSLOG_RUNTIME_ERROR, "error: unable to set CURLOPT_WRITEDATA: %s", curl_error);
             NURLY_RESULT_UNKNOWN(result_data);
             break;
         }
         if (curl_easy_perform(curl_handle) != CURLE_OK) {
-            nurly_log("error: unable to perform curl: %s", curl_error);
+            nurly_log(NSLOG_RUNTIME_ERROR, "error: unable to perform curl: %s", curl_error);
             NURLY_RESULT_UNKNOWN(result_data);
             break;
         }
         if (curl_easy_getinfo(curl_handle, CURLINFO_RESPONSE_CODE, &http_code) != CURLE_OK) {
-            nurly_log("error: unable to get CURLINFO_RESPONSE_CODE: %s", curl_error);
+            nurly_log(NSLOG_RUNTIME_ERROR, "error: unable to get CURLINFO_RESPONSE_CODE: %s", curl_error);
             NURLY_RESULT_UNKNOWN(result_data);
             break;
         }
@@ -59,7 +59,7 @@ static void nurly_check_curl_output(check_result* result_data, CURL* curl_handle
         NURLY_CLOSE(reply_obj);
 
         if ((result_data->output = escape_newlines(reply_txt)) == NULL) {
-            nurly_log("error: unable to allocate memory for escaped output");
+            nurly_log(NSLOG_RUNTIME_ERROR, "error: unable to allocate memory for escaped output");
             NURLY_RESULT_UNKNOWN(result_data);
             break;
         }

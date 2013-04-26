@@ -5,10 +5,10 @@ static void nurly_log_regerror(int err, regex_t* reg, char* pat) {
     char*  buf = NULL;
 
     if ((buf = (char*)malloc(len)) == NULL) {
-        nurly_log("error: unable to allocate memory for regerror");
+        nurly_log(NSLOG_RUNTIME_ERROR, "error: unable to allocate memory for regerror");
     } else {
         regerror(err, reg, buf, len);
-        nurly_log("error: unable to compile pattern for %s: %s", pat, buf);
+        nurly_log(NSLOG_CONFIG_ERROR, "error: unable to compile pattern for %s: %s", pat, buf);
     }
 
     regfree(reg);
@@ -30,10 +30,10 @@ int nurly_config_read(char* cfg_name, nurly_config_t* nurly_config) {
     mmapfile* cfg_file = NULL;
 
     if ((cfg_file = mmap_fopen(cfg_name)) == NULL) {
-        nurly_log("error: unable to open configuration file: %s", cfg_name);
+        nurly_log(NSLOG_CONFIG_ERROR, "error: unable to open configuration file: %s", cfg_name);
         return ERROR;
     } else {
-        nurly_log("processing configuration file: %s", cfg_name);
+        nurly_log(NSLOG_PROCESS_INFO, "processing configuration file: %s", cfg_name);
     }
 
     while (TRUE) {
@@ -42,7 +42,7 @@ int nurly_config_read(char* cfg_name, nurly_config_t* nurly_config) {
         NURLY_FREE(cfg_val);
 
         if ((cfg_line = mmap_fgets_multiline(cfg_file)) == NULL) {
-            nurly_log("end of configuration file");
+            nurly_log(NSLOG_PROCESS_INFO, "end of configuration file");
             break;
         }
 
@@ -54,21 +54,21 @@ int nurly_config_read(char* cfg_name, nurly_config_t* nurly_config) {
 
         /* extract key */
         if ((temp_ptr = my_strtok(cfg_line, "=")) == NULL) {
-            nurly_log("warning: invalid configuration on line %2d: %s", cfg_file->current_line, cfg_line);
+            nurly_log(NSLOG_CONFIG_WARNING, "warning: invalid configuration on line %2d: %s", cfg_file->current_line, cfg_line);
             continue;
         }
         if ((cfg_key = strdup(temp_ptr)) == NULL) {
-            nurly_log("error: unable to allocate memory for configuration key");
+            nurly_log(NSLOG_RUNTIME_ERROR, "error: unable to allocate memory for configuration key");
             parse_error = TRUE;
             break;
         }
         /* extract value */
         if ((temp_ptr = my_strtok(NULL, "\n")) == NULL) {
-            nurly_log("warning: invalid configuration on line %2d: %s", cfg_file->current_line, cfg_line);
+            nurly_log(NSLOG_CONFIG_WARNING, "warning: invalid configuration on line %2d: %s", cfg_file->current_line, cfg_line);
             continue;
         }
         if ((cfg_val = strdup(temp_ptr)) == NULL) {
-            nurly_log("error: unable to allocate memory for configuration value");
+            nurly_log(NSLOG_RUNTIME_ERROR, "error: unable to allocate memory for configuration value");
             parse_error = TRUE;
             break;
         }
@@ -78,41 +78,41 @@ int nurly_config_read(char* cfg_name, nurly_config_t* nurly_config) {
 
         if (!strcmp(cfg_key, "checks_url")) {
             if ((nurly_config->checks_url = strdup(cfg_val)) == NULL) {
-                nurly_log("error: unable to allocate memory for checks_url value");
+                nurly_log(NSLOG_RUNTIME_ERROR, "error: unable to allocate memory for checks_url value");
                 parse_error = TRUE;
                 break;
             } else {
-                nurly_log("set checks url: %s", nurly_config->checks_url);
+                nurly_log(NSLOG_PROCESS_INFO, "set checks url: %s", nurly_config->checks_url);
             }
         } else if (!strcmp(cfg_key, "health_url")) {
             if ((nurly_config->health_url = strdup(cfg_val)) == NULL) {
-                nurly_log("error: unable to allocate memory for health_url value");
+                nurly_log(NSLOG_RUNTIME_ERROR, "error: unable to allocate memory for health_url value");
                 parse_error = TRUE;
                 break;
             } else {
-                nurly_log("set health url: %s", nurly_config->health_url);
+                nurly_log(NSLOG_PROCESS_INFO, "set health url: %s", nurly_config->health_url);
             }
         } else if (!strcmp(cfg_key, "health_interval")) {
             if ((nurly_config->health_interval = atoi(cfg_val)) == 0) {
-                nurly_log("warning: invalid health_interval value");
+                nurly_log(NSLOG_CONFIG_WARNING, "warning: invalid health_interval value");
                 nurly_config->health_interval = 2;
             }
-            nurly_log("set health interval: %d", nurly_config->health_interval);
+            nurly_log(NSLOG_PROCESS_INFO, "set health interval: %d", nurly_config->health_interval);
         } else if (!strcmp(cfg_key, "worker_threads")) {
             if ((nurly_config->worker_threads = atoi(cfg_val)) == 0) {
-                nurly_log("warning: invalid worker_threads value");
+                nurly_log(NSLOG_CONFIG_WARNING, "warning: invalid worker_threads value");
                 nurly_config->worker_threads = 20;
             }
-            nurly_log("set worker threads: %d", nurly_config->worker_threads);
+            nurly_log(NSLOG_PROCESS_INFO, "set worker threads: %d", nurly_config->worker_threads);
         } else if (!strcmp(cfg_key, "http_timeout")) {
             if ((nurly_config->worker_threads = atol(cfg_val)) == 0) {
-                nurly_log("warning: invalid http_timeout value");
+                nurly_log(NSLOG_CONFIG_WARNING, "warning: invalid http_timeout value");
                 nurly_config->http_timeout = 10;
             }
-            nurly_log("set http timeout: %d", nurly_config->http_timeout);
+            nurly_log(NSLOG_PROCESS_INFO, "set http timeout: %d", nurly_config->http_timeout);
         } else if (!strcmp(cfg_key, "skip_host")) {
             if ((temp_reg = (regex_t*)malloc(sizeof(regex_t))) == NULL) {
-                nurly_log("error: unable to allocate memory for skip_host pattern");
+                nurly_log(NSLOG_RUNTIME_ERROR, "error: unable to allocate memory for skip_host pattern");
                 parse_error = TRUE;
                 break;
             }
@@ -122,10 +122,10 @@ int nurly_config_read(char* cfg_name, nurly_config_t* nurly_config) {
                 break;
             }
             nurly_queue_put(&(nurly_config->skip_hosts), (void*)temp_reg);
-            nurly_log("added skip_host pattern: %s", cfg_val);
+            nurly_log(NSLOG_PROCESS_INFO, "added skip_host pattern: %s", cfg_val);
         } else if (!strcmp(cfg_key, "skip_service")) {
             if ((temp_reg = (regex_t*)malloc(sizeof(regex_t))) == NULL) {
-                nurly_log("error: unable to allocate memory for skip_service pattern");
+                nurly_log(NSLOG_RUNTIME_ERROR, "error: unable to allocate memory for skip_service pattern");
                 parse_error = TRUE;
                 break;
             }
@@ -135,9 +135,9 @@ int nurly_config_read(char* cfg_name, nurly_config_t* nurly_config) {
                 break;
             }
             nurly_queue_put(&(nurly_config->skip_services), (void*)temp_reg);
-            nurly_log("added skip_service pattern: %s", cfg_val);
+            nurly_log(NSLOG_PROCESS_INFO, "added skip_service pattern: %s", cfg_val);
         } else {
-            nurly_log("warning: unknown configuration key: %s", cfg_key);
+            nurly_log(NSLOG_CONFIG_WARNING, "warning: unknown configuration key: %s", cfg_key);
         }
     }
 
@@ -147,7 +147,7 @@ int nurly_config_read(char* cfg_name, nurly_config_t* nurly_config) {
     mmap_fclose(cfg_file);
 
     if (nurly_config->checks_url == NULL) {
-        nurly_log("error: no checks_url provided, nurly will be disabled.");
+        nurly_log(NSLOG_CONFIG_ERROR, "error: no checks_url provided, nurly will be disabled.");
         parse_error = TRUE;
     }
 

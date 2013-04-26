@@ -9,9 +9,9 @@ static void nurly_checks_loop(CURL* curl_handle) {
     while (TRUE) {
         result_data = (check_result*)nurly_queue_get(&nurly_queue);
         if (result_data) {
-            nurly_log("distributing service %s on %s", result_data->service_description, result_data->host_name);
+            log_debug_info(DEBUGL_CHECKS, DEBUGV_BASIC, "distributing service %s on %s", result_data->service_description, result_data->host_name);
         } else {
-            nurly_log("queue is closed, terminating worker thread");
+            nurly_log(NSLOG_PROCESS_INFO, "queue is closed, terminating worker thread");
             break;
         }
 
@@ -26,7 +26,7 @@ static void nurly_health_loop(CURL* curl_handle) {
             nurly_check_health(curl_handle);
             sleep(nurly_config.health_interval);
         } else {
-            nurly_log("queue is closed, terminating health thread");
+            nurly_log(NSLOG_PROCESS_INFO, "queue is closed, terminating health thread");
             break;
         }
     }
@@ -42,10 +42,10 @@ void* nurly_worker_start(void* data) {
     curl_easy_setopt(curl_handle, CURLOPT_TIMEOUT,    nurly_config.http_timeout);
 
     if (worker_type == NURLY_WORKER_CHECKS) {
-        nurly_log("starting checks thread");
+        nurly_log(NSLOG_PROCESS_INFO, "starting checks thread");
         nurly_checks_loop(curl_handle);
     } else if (worker_type == NURLY_WORKER_HEALTH) {
-        nurly_log("starting health thread");
+        nurly_log(NSLOG_PROCESS_INFO, "starting health thread");
         nurly_health_loop(curl_handle);
     }
 
