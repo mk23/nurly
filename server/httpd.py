@@ -16,7 +16,7 @@ import traceback
 import urllib
 import urlparse
 
-VERSION = '1.2.2'
+VERSION = '1.2.3'
 
 STATUS_IDLE, STATUS_BUSY, STATUS_STOP = 'IBS'
 

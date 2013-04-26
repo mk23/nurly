@@ -1,3 +1,16 @@
+nurly (1.2.3) precise; urgency=low
+
+  * Tagging 1.2.3
+  * [a90e5e5] Issue #8: Standardize logging to nagios messages types and
+    debug levels.
+  * [36b6c5f] Issue #9: add flag to turn off access logging.
+  * [1bc80f1] Issue #11: Make the curl http timeout configurable.
+  * [6c2fe03] Issue #12: Fix double decoding of request paths.
+  * [13bb0d5] Issue #13: Suspend SIGCHLD handler while running
+    check_command because it may interfere with the subprocess module.
+
+ -- Max Kalika <max@topsy.com>  Fri, 26 Apr 2013 14:13:29 -0700
+
 nurly (1.2.2) precise; urgency=low
 
   * Tagging 1.2.2
