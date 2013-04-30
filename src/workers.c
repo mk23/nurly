@@ -12,7 +12,7 @@ static void nurly_checks_loop(CURL* curl_handle) {
             log_debug_info(DEBUGL_CHECKS, DEBUGV_BASIC, "distributing service %s on %s", result_data->service_description, result_data->host_name);
         } else {
             nurly_log(NSLOG_PROCESS_INFO, "queue is closed, terminating worker thread");
-            break;
+            pthread_exit(NULL);
         }
 
         nurly_check_service(curl_handle, result_data);
@@ -27,7 +27,7 @@ static void nurly_health_loop(CURL* curl_handle) {
             sleep(nurly_config.health_interval);
         } else {
             nurly_log(NSLOG_PROCESS_INFO, "queue is closed, terminating health thread");
-            break;
+            pthread_exit(NULL);
         }
     }
 }
