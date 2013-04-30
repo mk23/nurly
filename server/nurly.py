@@ -42,9 +42,6 @@ def check_command(req, res, cmd):
     try:
         fun = importlib.import_module(os.path.splitext(os.path.basename(cmd[0]))[0]).main
         arg = cmd[1:]
-
-        if 'argv' not in fun.func_code.co_varnames:
-            raise AttributeError
     except (AttributeError, ImportError):
         fun = check_wrapper(tmp, tmp).main
         arg = cmd
