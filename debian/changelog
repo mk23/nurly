@@ -1,3 +1,14 @@
+nurly (1.2.4) precise; urgency=low
+
+  * Tagging 1.2.4
+  * [a92612d] Issue #16: Add an example nurly-compatible php script.
+  * [75bb2d3] Issue #15: Fix forking in compatible plugins.
+  * [b4fcb03] Consolidate git ignores.
+  * [488c5ee] Issue #14: Fix SIGSEGV by joining the health and worker
+    threads during module deinit.
+
+ -- Max Kalika <max@topsy.com>  Thu, 09 May 2013 04:15:57 -0700
+
 nurly (1.2.3) precise; urgency=low
 
   * Tagging 1.2.3
