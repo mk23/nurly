@@ -105,7 +105,7 @@ int nurly_config_read(char* cfg_name, nurly_config_t* nurly_config) {
             }
             nurly_log(NSLOG_PROCESS_INFO, "set worker threads: %d", nurly_config->worker_threads);
         } else if (!strcmp(cfg_key, "http_timeout")) {
-            if ((nurly_config->worker_threads = atol(cfg_val)) == 0) {
+            if ((nurly_config->http_timeout = atol(cfg_val)) == 0) {
                 nurly_log(NSLOG_CONFIG_WARNING, "warning: invalid http_timeout value");
                 nurly_config->http_timeout = 10;
             }
