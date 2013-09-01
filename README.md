@@ -1,4 +1,4 @@
-NURLY
+NURLY [![Build status](https://travis-ci.org/mk23/nurly.png)](https://travis-ci.org/mk23/nurly)
 =====
 
 Nurly is a Nagios Event Broker module that allows service checks to be distributed via libcurl to any compliant http server.  The backend server receiving service check requests is responsible for executing the requested plugin, returning a properly mapped HTTP response code and the output.
