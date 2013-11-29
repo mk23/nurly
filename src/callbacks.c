@@ -58,17 +58,17 @@ int nurly_callback_service_check(int event_type, void* data) {
     }
 
     if (nurly_queue_has(&nurly_config.skip_hosts, service_data->host_name, nurly_config_match)) {
-        log_debug_info(DEBUGL_CHECKS, DEBUGV_BASIC, "locally checking %s on %s due to skip_host configuration", service_data->service_description, service_data->host_name);
+        log_debug_info(DEBUGL_CHECKS, DEBUGV_BASIC, "nurly: locally checking %s on %s due to skip_host configuration\n", service_data->service_description, service_data->host_name);
         return NEB_OK;
     }
 
     if (nurly_queue_has(&nurly_config.skip_services, service_data->service_description, nurly_config_match)) {
-        log_debug_info(DEBUGL_CHECKS, DEBUGV_BASIC, "locally checking %s on %s due to skip_service configuration", service_data->service_description, service_data->host_name);
+        log_debug_info(DEBUGL_CHECKS, DEBUGV_BASIC, "nurly: locally checking %s on %s due to skip_service configuration\n", service_data->service_description, service_data->host_name);
         return NEB_OK;
     }
 
     if (!nurly_health) {
-        log_debug_info(DEBUGL_CHECKS, DEBUGV_BASIC, "locally checking %s on %s due to failed health check", service_data->service_description, service_data->host_name);
+        log_debug_info(DEBUGL_CHECKS, DEBUGV_BASIC, "nurly: locally checking %s on %s due to failed health check\n", service_data->service_description, service_data->host_name);
         return NEB_OK;
     }
 

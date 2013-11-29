@@ -9,7 +9,7 @@ static void nurly_checks_loop(CURL* curl_handle) {
     while (TRUE) {
         result_data = (check_result*)nurly_queue_get(&nurly_queue);
         if (result_data) {
-            log_debug_info(DEBUGL_CHECKS, DEBUGV_BASIC, "distributing service %s on %s", result_data->service_description, result_data->host_name);
+            log_debug_info(DEBUGL_CHECKS, DEBUGV_BASIC, "nurly: distributing service %s on %s\n", result_data->service_description, result_data->host_name);
         } else {
             nurly_log(NSLOG_PROCESS_INFO, "queue is closed, terminating worker thread");
             pthread_exit(NULL);
