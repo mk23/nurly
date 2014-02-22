@@ -53,8 +53,6 @@ int nebmodule_deinit(int flags, int reason) {
 
     nurly_queue.purge = nurly_queue_free_item;
     nurly_queue_close(&nurly_queue);
-    nurly_config_free(&nurly_config);
-    curl_global_cleanup();
 
     nurly_log(NSLOG_PROCESS_INFO, "joining health thread");
     pthread_join(health_thread, NULL);
@@ -64,6 +62,8 @@ int nebmodule_deinit(int flags, int reason) {
         pthread_join(check_threads[i], NULL);
     }
 
+    nurly_config_free(&nurly_config);
+    curl_global_cleanup();
     NURLY_FREE(check_threads);
 
     return NEB_OK;
