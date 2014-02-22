@@ -36,9 +36,9 @@ int nebmodule_init(int flags, char* args, nebmodule* handle) {
     /* module info */
     neb_set_module_info(nurly_module, NEBMODULE_MODINFO_TITLE,     "Nurly");
     neb_set_module_info(nurly_module, NEBMODULE_MODINFO_AUTHOR,    "Max Kalika");
-    neb_set_module_info(nurly_module, NEBMODULE_MODINFO_COPYRIGHT, "Copyright (c) 2013 Max Kalika");
+    neb_set_module_info(nurly_module, NEBMODULE_MODINFO_COPYRIGHT, "Copyright (c) 2011-2013 Max Kalika");
     neb_set_module_info(nurly_module, NEBMODULE_MODINFO_VERSION,   NURLY_VERSION);
-    neb_set_module_info(nurly_module, NEBMODULE_MODINFO_LICENSE,   "as-is");
+    neb_set_module_info(nurly_module, NEBMODULE_MODINFO_LICENSE,   "MIT");
     neb_set_module_info(nurly_module, NEBMODULE_MODINFO_DESC,      "distribute service checks via libcurl");
 
     /* register initializer callback */
