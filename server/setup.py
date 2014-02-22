@@ -1,11 +1,14 @@
 #!/usr/bin/env python2.7
 
-import sys
+import os
 
-from distutils.core import setup
+from setuptools import setup
 from httpd import VERSION
 
 if __name__ == '__main__':
+    # dirty hack to allow symlink targets to work
+    delattr(os, 'link')
+
     setup(
         author='Max Kalika',
         author_email='max.kalika+projects@gmail.com',
@@ -13,5 +16,6 @@ if __name__ == '__main__':
 
         name='nurly-server',
         version=VERSION,
-        scripts=['nurly.py', 'httpd.py'],
+	license='../LICENSE.txt',
+	scripts=['nurly.py', 'httpd.py']
     )

@@ -122,5 +122,4 @@ The Nurly server is fully configurable via command-line parameters:
 
 License
 -------
-
-TBD
+[MIT](http://mk23.mit-license.org/2011-2014/license.html)
