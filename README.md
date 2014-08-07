@@ -28,7 +28,7 @@ Configuration
 
 ### nagios
 
-Nagios needs to have the Execution Broker Module configured and Broker Options set to allow Program State and Service Checks.  Start by editing the main nagios config file (`/etc/nagios3/nagios.cfg`). The parameter to the module is the location of nurly's config file.
+Nagios needs to have the Event Broker Module configured and Broker Options set to allow Program State and Service Checks.  Start by editing the main nagios config file (`/etc/nagios3/nagios.cfg`). The parameter to the module is the location of nurly's config file.
 
     # EVENT BROKER MODULE(S)
     # This directive is used to specify an event broker module that should
